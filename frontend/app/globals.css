@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Design tokens (HSL triples). Hex values from the design system in comments. */
+@layer base {
+  :root {
+    --background: 210 40% 96%;           /* #F1F5F9 */
+    --foreground: 222 47% 11%;           /* #0F172A */
+    --card: 0 0% 100%;                   /* #FFFFFF */
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 19% 35%;     /* slate-600, 7:1 on white */
+    --border: 214 32% 91%;               /* slate-200 */
+    --ring: 226 71% 40%;
+    --primary: 226 71% 40%;              /* #1E40AF */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 199 93% 60%;            /* #38BDF8 */
+    --secondary-foreground: 222 47% 11%; /* dark text: white on #38BDF8 fails contrast */
+    --success: 142 76% 36%;              /* #16A34A */
+    --danger: 0 72% 51%;                 /* #DC2626 */
+    --warning: 32 95% 44%;               /* #D97706 */
+    --sidebar: 222 47% 11%;              /* #0F172A */
+    --sidebar-foreground: 214 32% 91%;
+  }
+
+  * { @apply border-border; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    font-feature-settings: "cv11", "ss01";
+  }
+  :focus-visible { @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background; }
+  h1, h2, h3 { @apply tracking-tight; }
+}
+
+@layer utilities {
+  /* Exercise-book ruling used on the sign-in panel: faint lines with a margin rule. */
+  .ruled-paper {
+    background-image:
+      linear-gradient(to right, transparent 71px, hsl(var(--secondary) / 0.55) 71px, hsl(var(--secondary) / 0.55) 73px, transparent 73px),
+      repeating-linear-gradient(to bottom, transparent 0, transparent 39px, rgb(255 255 255 / 0.09) 39px, rgb(255 255 255 / 0.09) 40px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
