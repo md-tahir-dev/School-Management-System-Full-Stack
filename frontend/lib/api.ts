@@ -151,3 +151,35 @@ export async function changePasswordRequest(current_password: string, new_passwo
   setAccessToken(data.access_token);
   return data;
 }
+
+/** Authenticated binary/text download (PDF, CSV). Mirrors `api()`: bearer token plus one refresh retry. */
+export async function apiBlob(path: string, query?: Record<string, QueryValue>): Promise<Blob> {
+  const url = buildUrl(path, query);
+  const send = () =>
+    fetch(url, { credentials: "include", headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {} });
+  let res = await send();
+  if (res.status === 401) {
+    const session = await refreshSession();
+    if (session) res = await send();
+    else sessionExpiredHandler?.();
+  }
+  if (!res.ok) throw await toApiError(res);
+  return res.blob();
+}
+
+export function saveBlob(blob: Blob, filename: string) {
+  const href = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = href;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(href), 10_000);
+}
+
+export function openBlob(blob: Blob) {
+  const href = URL.createObjectURL(blob);
+  window.open(href, "_blank", "noopener");
+  setTimeout(() => URL.revokeObjectURL(href), 60_000);
+}

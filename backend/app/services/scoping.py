@@ -50,3 +50,44 @@ async def get_student_in_scope(db: AsyncSession, user: User, student_id: uuid.UU
     if student is None:
         raise not_found("Student")
     return student
+
+
+async def teacher_assigned_to_section(
+    db: AsyncSession, teacher_id: uuid.UUID, class_id: uuid.UUID, section_id: uuid.UUID | None
+) -> bool:
+    """True if `teacher_id` has any assignment covering this class (+ section, if given). An assignment
+    with a null section_id covers the whole class."""
+    clause = TeacherAssignment.teacher_id == teacher_id, TeacherAssignment.class_id == class_id
+    if section_id is not None:
+        clause += (or_(TeacherAssignment.section_id.is_(None), TeacherAssignment.section_id == section_id),)
+    return bool(await db.scalar(select(exists(select(TeacherAssignment.id).where(*clause)))))
+
+
+async def teacher_assigned_to_subject(
+    db: AsyncSession,
+    teacher_id: uuid.UUID,
+    class_id: uuid.UUID,
+    section_id: uuid.UUID | None,
+    subject_id: uuid.UUID,
+) -> bool:
+    """True if `teacher_id` teaches `subject_id` for this class (+ section, if given)."""
+    clause = (
+        TeacherAssignment.teacher_id == teacher_id,
+        TeacherAssignment.class_id == class_id,
+        TeacherAssignment.subject_id == subject_id,
+    )
+    if section_id is not None:
+        clause += (or_(TeacherAssignment.section_id.is_(None), TeacherAssignment.section_id == section_id),)
+    return bool(await db.scalar(select(exists(select(TeacherAssignment.id).where(*clause)))))
+
+
+async def teacher_assigned_class_section_pairs(db: AsyncSession, teacher_id: uuid.UUID) -> set[tuple]:
+    """Distinct (class_id, section_id) pairs this teacher may mark attendance for. A row with a null
+    section_id means "every section of that class"; callers that need concrete sections should expand
+    it themselves (e.g. against the class's actual section list)."""
+    rows = await db.execute(
+        select(TeacherAssignment.class_id, TeacherAssignment.section_id)
+        .where(TeacherAssignment.teacher_id == teacher_id)
+        .distinct()
+    )
+    return set(rows.all())

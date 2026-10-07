@@ -64,8 +64,13 @@ async def test_dashboard_shows_current_month_fee_and_documented_placeholders(cli
     fee = dash["fee_current_month"]
     assert fee["month"] == date.today().replace(day=1).isoformat()
     assert (fee["status"], fee["total_payable"], fee["paid_amount"]) == ("unpaid", "3000.00", "0.00")
-    # keys exist now (null) so phases 3 to 6 can fill them without changing the schema
-    for key in ("latest_result", "attendance_percentage", "upcoming_tests", "announcements"):
+    # Phase 3 fills latest_result/attendance in; upcoming_tests/announcements stay null until phases 5/6.
+    assert dash["latest_result"] is None  # no exams recorded for this student yet
+    assert dash["attendance"] == {
+        "month_percentage": 0.0, "present": 0, "absent": 0, "late": 0, "sick": 0, "below_threshold": True,
+    }
+    assert dash["attendance_percentage"] == 0.0
+    for key in ("upcoming_tests", "announcements"):
         assert key in dash and dash[key] is None
 
     async with SessionLocal() as db:

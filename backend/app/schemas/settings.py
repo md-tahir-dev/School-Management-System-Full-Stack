@@ -18,6 +18,10 @@ class SchoolSettingsOut(BaseModel):
     late_fine_amount: Decimal
     fail_if_any_subject_failed: bool
     current_academic_year_id: uuid.UUID | None
+    weekly_off_days: list[int]
+    attendance_alert_threshold: int
+    backdate_limit_days: int
+    timezone: str
 
 
 class SchoolSettingsUpdate(BaseModel):
@@ -36,6 +40,17 @@ class SchoolSettingsUpdate(BaseModel):
     late_fine_amount: Decimal | None = Field(None, ge=0, max_digits=12, decimal_places=2)
     fail_if_any_subject_failed: bool | None = None
     current_academic_year_id: uuid.UUID | None = None
+    weekly_off_days: list[int] | None = Field(None, min_length=0, max_length=7)
+    attendance_alert_threshold: int | None = Field(None, ge=1, le=100)
+    backdate_limit_days: int | None = Field(None, ge=0, le=365)
+    timezone: str | None = Field(None, min_length=1, max_length=64)
+
+    @field_validator("weekly_off_days")
+    @classmethod
+    def _valid_isoweekdays(cls, v):
+        if v is not None and any(not (1 <= d <= 7) for d in v):
+            raise ValueError("weekly_off_days must use ISO weekday numbers 1 (Mon) to 7 (Sun)")
+        return v
 
     @field_validator("name", "slogan", "address", "phone", "website", mode="before")
     @classmethod

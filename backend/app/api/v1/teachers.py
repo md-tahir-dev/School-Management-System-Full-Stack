@@ -3,11 +3,12 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFile, status
 
-from app.core.deps import DbSession, require_roles
+from app.core.deps import CurrentUser, DbSession, require_roles
 from app.core.errors import not_found
 from app.core.ratelimit import client_ip
 from app.models import Role, User
 from app.models.enums import Designation, EmploymentType
+from app.schemas.attendance import TeacherAttendanceSummary
 from app.schemas.common import Page, PageParams, page_params
 from app.schemas.teachers import (
     AssignmentIn,
@@ -113,3 +114,12 @@ async def replace_assignments(
 @router.put("/{teacher_id}/salary-structure", response_model=SalaryOut)
 async def set_salary_structure(teacher_id: uuid.UUID, body: SalaryIn, request: Request, db: DbSession, admin: Admin):
     return await svc.set_salary_structure(db, admin, teacher_id, body, ip=client_ip(request))
+
+
+@router.get("/{teacher_id}/attendance/summary", response_model=TeacherAttendanceSummary)
+async def attendance_summary(
+    teacher_id: uuid.UUID, user: CurrentUser, db: DbSession, month: str = Query(..., pattern=r"^\d{4}-\d{2}$")
+):
+    from app.services import teacher_attendance as ta_svc
+
+    return await ta_svc.teacher_summary(db, user, teacher_id, month)

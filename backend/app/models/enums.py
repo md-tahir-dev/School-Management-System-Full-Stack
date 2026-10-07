@@ -35,11 +35,23 @@ class AttendanceStatus(StrEnum):
     SICK = "sick"
 
 
+class TeacherAttendanceStatus(StrEnum):
+    PRESENT = "present"
+    ABSENT = "absent"
+    LATE = "late"
+    LEAVE = "leave"
+
+
 class ExamType(StrEnum):
-    MONTHLY = "monthly"
-    MIDTERM = "midterm"
-    FINAL = "final"
-    QUIZ = "quiz"
+    FIRST_TERM = "1st Term"
+    MID_TERM = "Mid Term"
+    FINAL_TERM = "Final Term"
+    UNIT_TEST = "Unit Test"
+
+
+class ResultStatus(StrEnum):
+    DRAFT = "draft"
+    COMPLETE = "complete"
 
 
 class FeeStatus(StrEnum):

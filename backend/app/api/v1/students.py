@@ -8,8 +8,10 @@ from app.core.deps import CurrentUser, DbSession, require_roles
 from app.core.ratelimit import client_ip
 from app.models import Role, User
 from app.models.enums import StudentStatus
+from app.schemas.attendance import AttendanceSummary, CalendarOut
 from app.schemas.common import Page, PageParams, page_params
 from app.schemas.fields import Credential
+from app.schemas.results import StudentResultsOut
 from app.schemas.students import (
     DiscountResult,
     DiscountUpdate,
@@ -23,6 +25,8 @@ from app.schemas.students import (
     StudentListItem,
     StudentUpdate,
 )
+from app.services import attendance as attendance_svc
+from app.services import exams as exams_svc
 from app.services import students as svc
 from app.services.storage import StorageBackend, get_storage
 from app.utils.pagination import paginate  # noqa: F401
@@ -143,6 +147,22 @@ async def student_ledger(
     user: Annotated[User, Depends(require_roles(Role.ADMIN, Role.CEO, Role.STUDENT, Role.PARENT))],
 ):
     return await svc.get_ledger(db, user, student_id)
+
+
+# --------------------------------------------------------------- Phase 3: attendance & results
+@router.get("/{student_id}/attendance/summary", response_model=AttendanceSummary)
+async def attendance_summary(student_id: uuid.UUID, user: CurrentUser, db: DbSession, month: str = Query(..., pattern=r"^\d{4}-\d{2}$")):
+    return await attendance_svc.student_summary(db, user, student_id, month)
+
+
+@router.get("/{student_id}/attendance/calendar", response_model=CalendarOut)
+async def attendance_calendar(student_id: uuid.UUID, user: CurrentUser, db: DbSession, month: str = Query(..., pattern=r"^\d{4}-\d{2}$")):
+    return await attendance_svc.student_calendar(db, user, student_id, month)
+
+
+@router.get("/{student_id}/results", response_model=StudentResultsOut)
+async def student_results(student_id: uuid.UUID, user: CurrentUser, db: DbSession):
+    return await exams_svc.student_results(db, user, student_id)
 
 
 _ = Credential  # re-exported for OpenAPI consumers

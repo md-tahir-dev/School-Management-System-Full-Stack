@@ -8,6 +8,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, invalid, not_found
+from app.services.dbutil import flush_or_conflict as _flush_or_conflict
 from app.models import (
     AcademicYear,
     ClassSubject,
@@ -37,14 +38,6 @@ from app.services.audit import log_action
 from app.services.settings import get_school_settings
 from app.utils.money import money
 from app.utils.pagination import like_pattern, paginate
-
-
-async def _flush_or_conflict(db: AsyncSession, message: str, *, code: str = "CONFLICT", field: str | None = None):
-    try:
-        await db.flush()
-    except IntegrityError as exc:
-        await db.rollback()
-        raise AppError(409, code, message, fields={field: message} if field else None) from exc
 
 
 # ------------------------------------------------------------ academic years

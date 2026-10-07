@@ -11,7 +11,7 @@ same service functions the API uses, so seeding exercises the real registration 
 
 import asyncio
 import sys
-from datetime import date
+from datetime import date, timedelta
 
 from sqlalchemy import select
 
@@ -22,7 +22,11 @@ from app.core.security import hash_password, validate_password_strength
 from app.db.session import SessionLocal, engine
 from app.models import (
     AcademicYear,
+    Attendance,
     ClassSubject,
+    Exam,
+    SchoolHoliday,
+    TeacherAttendance,
     FeeStructure,
     Guardian,
     Role,
@@ -33,9 +37,22 @@ from app.models import (
     Teacher,
     User,
 )
+from app.models.enums import AttendanceStatus, ExamType, StudentStatus, TeacherAttendanceStatus
+from app.schemas.attendance import (
+    AttendanceRecordIn,
+    BulkAttendanceIn,
+    BulkTeacherAttendanceIn,
+    HolidayIn,
+    TeacherAttendanceRecordIn,
+)
+from app.schemas.results import ExamIn, MarkSaveIn, MarksBulkSaveIn
 from app.schemas.students import StudentCreate
 from app.schemas.teachers import TeacherCreate
+from app.services import attendance as attendance_svc
+from app.services import exams as exam_svc
+from app.services import holidays as holiday_svc
 from app.services import students as student_svc
+from app.services import teacher_attendance as teacher_attendance_svc
 from app.services import teachers as teacher_svc
 from app.services.settings import get_school_settings
 
@@ -292,6 +309,165 @@ async def _seed_people(ids: dict, demo: bool, shown: list[tuple[str, str, str]])
     return teachers, students
 
 
+
+# ------------------------------------------------------------------ Phase 3 sample data
+LOW_ATTENDANCE_STUDENT = "Ayesha Malik"  # deliberately below the 75% alert threshold
+
+
+def _school_days(today: date, count: int, skip: set[date]) -> list[date]:
+    """The most recent `count` school days (no Sundays, no holidays), oldest first."""
+    days: list[date] = []
+    d = today
+    while len(days) < count:
+        if d.isoweekday() != 7 and d not in skip:
+            days.append(d)
+        d -= timedelta(days=1)
+    return list(reversed(days))
+
+
+def _mark_plan(position: int, subject_names: list[str]) -> dict[str, tuple[int, bool] | None]:
+    """subject name -> (obtained, is_absent), or None when that subject is not entered yet.
+    Position in the class roster decides the story each student tells (documented in the README):
+      0 and 1  tie for first place (92 in everything)
+      2        fails Mathematics (30) but does well elsewhere -> overall FAIL under the fail rule
+      3        absent in Science and Social Studies not entered -> incomplete (draft), no grade/rank
+      others   ordinary passing marks that differ per student so the ranks spread out
+    """
+    plan: dict[str, tuple[int, bool] | None] = {}
+    for name in subject_names:
+        if position in (0, 1):
+            plan[name] = (92, False)
+        elif position == 2:
+            plan[name] = (30, False) if name == "Mathematics" else (78, False)
+        elif position == 3:
+            if name == "Science":
+                plan[name] = (0, True)
+            elif name == "Social Studies":
+                plan[name] = None
+            else:
+                plan[name] = (65, False)
+        else:
+            plan[name] = (60 + (position * 7) % 30, False)
+    return plan
+
+
+async def _seed_phase3(ids: dict) -> None:
+    """Holidays, 30 school days of attendance, 10 days of teacher attendance and one Mid Term exam per
+    class. Uses the same service functions as the API and skips anything already present, so it is safe
+    to run repeatedly."""
+    import random
+
+    from app.models import Student as StudentModel
+    from app.services.attendance import _today
+
+    async with SessionLocal() as db:
+        admin = await db.scalar(select(User).where(User.role == Role.ADMIN, User.is_active.is_(True)).limit(1))
+        if admin is None:
+            print("No admin user found; skipping Phase 3 sample data.", file=sys.stderr)
+            return
+        school = await get_school_settings(db)
+        school.weekly_off_days = school.weekly_off_days or [7]  # Sunday
+        today = _today(school)
+
+        # Seed students are registered "today", so backdate their admission to cover the attendance window.
+        cutoff = today - timedelta(days=60)
+        for st in (await db.scalars(select(StudentModel).where(StudentModel.admission_date > cutoff))).all():
+            st.admission_date = cutoff
+        await db.commit()
+
+        # ---- holidays: 3 sample dates inside the window
+        if await db.scalar(select(SchoolHoliday.id).limit(1)) is None:
+            candidates = _school_days(today, 30, set())
+            for offset, name in ((5, "Sample Holiday: Iqbal Day"), (12, "Sample Holiday: Teachers' Day"), (20, "Sample Holiday: Sports Day")):
+                await holiday_svc.create_holiday(db, admin, HolidayIn(date=candidates[-offset], name=name), ip=None)
+        holidays = {h.date for h in (await db.scalars(select(SchoolHoliday))).all()}
+        days = _school_days(today, 30, holidays)
+
+        # ---- student attendance for the last 30 school days
+        if await db.scalar(select(Attendance.id).limit(1)) is None:
+            rng = random.Random(2026)  # fixed seed -> the same data on every fresh database
+            for (class_name, sec_name), section_id in ids["section"].items():
+                class_id = ids["class"][class_name]
+                roster = (
+                    await db.scalars(
+                        select(StudentModel)
+                        .where(
+                            StudentModel.section_id == section_id,
+                            StudentModel.is_deleted.is_(False),
+                            StudentModel.status == StudentStatus.ACTIVE,
+                        )
+                        .order_by(StudentModel.roll_no)
+                    )
+                ).all()
+                if not roster:
+                    continue
+                roster = [(st.id, st.full_name) for st in roster]
+                for i, day in enumerate(days):
+                    records = []
+                    for student_id, full_name in roster:
+                        if full_name == LOW_ATTENDANCE_STUDENT:
+                            status = AttendanceStatus.ABSENT if i % 3 == 0 else AttendanceStatus.PRESENT  # 66.7%
+                        else:
+                            status = rng.choices(
+                                [AttendanceStatus.PRESENT, AttendanceStatus.LATE, AttendanceStatus.SICK, AttendanceStatus.ABSENT],
+                                weights=[90, 5, 3, 2],
+                            )[0]
+                        records.append(AttendanceRecordIn(student_id=student_id, status=status))
+                    await attendance_svc.bulk_save_attendance(
+                        db, admin, BulkAttendanceIn(class_id=class_id, section_id=section_id, date=day, records=records), ip=None
+                    )
+
+        # ---- teacher attendance: last 10 school days
+        if await db.scalar(select(TeacherAttendance.id).limit(1)) is None:
+            teacher_ids = [t.id for t in (await db.scalars(select(Teacher).where(Teacher.is_deleted.is_(False)).order_by(Teacher.employee_id))).all()]
+            for i, day in enumerate(days[-10:]):
+                records = []
+                for j, tid in enumerate(teacher_ids):
+                    status = TeacherAttendanceStatus.PRESENT
+                    if (i, j) == (2, 1):
+                        status = TeacherAttendanceStatus.LATE
+                    elif (i, j) == (6, 2):
+                        status = TeacherAttendanceStatus.LEAVE
+                    elif (i, j) == (8, 0):
+                        status = TeacherAttendanceStatus.ABSENT
+                    records.append(TeacherAttendanceRecordIn(teacher_id=tid, status=status))
+                if records:
+                    await teacher_attendance_svc.bulk_save(db, admin, BulkTeacherAttendanceIn(date=day, records=records), ip=None)
+
+        # ---- one Mid Term exam per class; Class 1 published, the others left as unpublished drafts
+        year = await db.scalar(select(AcademicYear).where(AcademicYear.is_current.is_(True)))
+        for class_name, class_id in ids["class"].items():
+            if await db.scalar(select(Exam.id).where(Exam.class_id == class_id, Exam.name == "Mid Term")):
+                continue
+            exam = await exam_svc.create_exam(
+                db, admin, ExamIn(name="Mid Term", type=ExamType.MID_TERM, academic_year_id=year.id, class_id=class_id), ip=None
+            )
+            subjects = await exam_svc.get_exam_subjects(db, exam.id)
+            names = [s.subject_name for s in subjects]
+            roster = (
+                await db.scalars(
+                    select(StudentModel)
+                    .where(StudentModel.class_id == class_id, StudentModel.is_deleted.is_(False), StudentModel.status == StudentStatus.ACTIVE)
+                    .order_by(StudentModel.roll_no)
+                )
+            ).all()
+            roster_ids = [st.id for st in roster]
+            for subject in subjects:
+                entries = []
+                for position, student_id in enumerate(roster_ids):
+                    cell = _mark_plan(position, names)[subject.subject_name]
+                    if cell is not None:
+                        entries.append(
+                            MarkSaveIn(student_id=student_id, subject_id=subject.subject_id, obtained_marks=cell[0], is_absent=cell[1])
+                        )
+                if entries:
+                    await exam_svc.save_marks_bulk(
+                        db, admin, exam.id, subject.subject_id, None, MarksBulkSaveIn(entries=entries), ip=None
+                    )
+            if class_name == "Class 1":
+                await exam_svc.publish_exam(db, admin, exam.id, ip=None)
+
+
 async def seed() -> None:
     demo = settings.app_env == "demo"
     sample = demo or settings.seed_sample_data
@@ -355,6 +531,7 @@ async def seed() -> None:
     if sample:
         ids = await _seed_structure()
         teachers, students = await _seed_people(ids, demo, shown)
+        await _seed_phase3(ids)
 
     print(f"Seeded settings + academic year. Users created directly: {', '.join(created) or 'none (already present)'}")
     if sample:

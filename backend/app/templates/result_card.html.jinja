@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<style>
+@font-face { font-family: "Noto Sans"; src: url("{{ font_regular }}"); }
+@font-face { font-family: "Noto Sans"; src: url("{{ font_bold }}"); font-weight: bold; }
+@font-face { font-family: "Noto Nastaliq Urdu"; src: url("{{ font_urdu }}"); }
+
+@page {
+    size: A4 portrait;
+    margin: 16mm 14mm;
+}
+* { box-sizing: border-box; }
+body {
+    font-family: "Noto Sans", "Noto Nastaliq Urdu", sans-serif;
+    color: #1a1a1a;
+    font-size: 11pt;
+    position: relative;
+}
+.urdu { font-family: "Noto Nastaliq Urdu", "Noto Sans", sans-serif; direction: rtl; }
+
+.header { display: flex; align-items: center; border-bottom: 3px solid #1e3a5f; padding-bottom: 10px; margin-bottom: 14px; }
+.header img { height: 56px; width: 56px; object-fit: contain; margin-right: 14px; }
+.header .school-name { font-size: 18pt; font-weight: bold; color: #1e3a5f; }
+.header .slogan { font-size: 9pt; color: #555; font-style: italic; }
+.header .contact { font-size: 8pt; color: #777; margin-top: 2px; }
+
+.draft-banner {
+    background: #fff3cd; border: 1px solid #ffc107; color: #856404;
+    text-align: center; padding: 5px; font-weight: bold; font-size: 10pt; margin-bottom: 10px;
+}
+
+.student-block { display: flex; justify-content: space-between; border: 1px solid #ccc; border-radius: 4px; padding: 10px 14px; margin-bottom: 14px; }
+.student-block .details { flex: 1; }
+.student-block .photo { width: 70px; height: 88px; border: 1px solid #ccc; object-fit: cover; margin-left: 14px; }
+.detail-row { display: flex; margin-bottom: 3px; }
+.detail-row .label { width: 100px; color: #666; font-size: 9pt; }
+.detail-row .value { font-weight: 600; }
+
+table.subjects { width: 100%; border-collapse: collapse; margin-bottom: 14px; }
+table.subjects th, table.subjects td { border: 1px solid #ccc; padding: 6px 8px; font-size: 10pt; text-align: center; }
+table.subjects th { background: #1e3a5f; color: white; }
+table.subjects td.subject-name { text-align: left; }
+.status-pass { color: #1a7a1a; font-weight: bold; }
+.status-fail { color: #b00020; font-weight: bold; }
+.status-ab { color: #995c00; font-weight: bold; }
+
+.summary { display: flex; justify-content: space-between; border-top: 2px solid #1e3a5f; padding-top: 10px; margin-bottom: 20px; }
+.summary .item { text-align: center; flex: 1; }
+.summary .item .val { font-size: 14pt; font-weight: bold; }
+.summary .item .lbl { font-size: 8pt; color: #666; }
+
+.stamp {
+    position: fixed; bottom: 18mm; right: 16mm;
+    font-size: 34pt; font-weight: 900; letter-spacing: 3px;
+    border: 4px solid; padding: 3px 14px; border-radius: 6px;
+    opacity: 0.25; transform: rotate(-14deg);
+}
+.stamp.pass { color: #1a7a1a; border-color: #1a7a1a; }
+.stamp.fail { color: #b00020; border-color: #b00020; }
+
+.footer { margin-top: 40px; }
+.footer .remarks { min-height: 30px; border-bottom: 1px solid #ccc; margin-bottom: 20px; font-size: 9pt; }
+.signatures { display: flex; justify-content: space-between; margin-top: 50px; }
+.signatures .line { width: 40%; border-top: 1px solid #333; text-align: center; padding-top: 4px; font-size: 9pt; }
+.meta { display: flex; justify-content: space-between; font-size: 8pt; color: #888; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+{% if is_draft %}
+<div class="draft-banner">DRAFT &mdash; This exam has not been published yet</div>
+{% endif %}
+
+<div class="header">
+    {% if logo_src %}<img src="{{ logo_src }}">{% endif %}
+    <div>
+        <div class="school-name">{{ school_name }}</div>
+        {% if slogan %}<div class="slogan">{{ slogan }}</div>{% endif %}
+        <div class="contact">{{ address or "" }}{% if phone %} &middot; {{ phone }}{% endif %}</div>
+    </div>
+</div>
+
+<div class="student-block">
+    <div class="details">
+        <div class="detail-row"><div class="label">Name</div><div class="value">{{ student_name }}</div></div>
+        <div class="detail-row"><div class="label">Father's Name</div><div class="value">{{ father_name or "-" }}</div></div>
+        <div class="detail-row"><div class="label">Roll No</div><div class="value">{{ roll_no }}</div></div>
+        <div class="detail-row"><div class="label">Class</div><div class="value">{{ class_name }}{% if section_name %} - {{ section_name }}{% endif %}</div></div>
+        <div class="detail-row"><div class="label">Exam</div><div class="value">{{ exam_name }} ({{ academic_year_label }})</div></div>
+    </div>
+    {% if photo_src %}<img class="photo" src="{{ photo_src }}">{% endif %}
+</div>
+
+{% if not is_draft %}
+<div class="stamp {{ 'pass' if is_pass else 'fail' }}">{{ "PASS" if is_pass else "FAIL" }}</div>
+{% endif %}
+
+<table class="subjects">
+<thead>
+<tr><th class="subject-name">Subject</th><th>Total</th><th>Passing</th><th>Obtained</th><th>Status</th></tr>
+</thead>
+<tbody>
+{% for s in subjects %}
+<tr>
+    <td class="subject-name">{{ s.subject_name }}</td>
+    <td>{{ s.total_marks }}</td>
+    <td>{{ s.passing_marks }}</td>
+    <td>{{ "AB" if s.is_absent else s.obtained_marks }}</td>
+    <td class="status-{{ 'ab' if s.is_absent else ('pass' if s.status == 'Pass' else 'fail') }}">{{ s.status }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+<div class="summary">
+    <div class="item"><div class="val">{{ total_marks_obtained }}</div><div class="lbl">Total Marks</div></div>
+    <div class="item"><div class="val">{{ total_marks_possible }}</div><div class="lbl">Obtained</div></div>
+    <div class="item"><div class="val">{{ percentage }}%</div><div class="lbl">Percentage</div></div>
+    <div class="item"><div class="val">{{ grade }}</div><div class="lbl">Grade</div></div>
+    {% if position %}<div class="item"><div class="val">{{ position }}</div><div class="lbl">Position</div></div>{% endif %}
+</div>
+
+<div class="footer">
+    <div class="remarks">{{ remarks or "" }}</div>
+    <div class="signatures">
+        <div class="line">Class Teacher</div>
+        <div class="line">Principal</div>
+    </div>
+    <div class="meta">
+        <span>Card No: {{ card_no }}</span>
+        <span>Issued: {{ issued_date }}</span>
+    </div>
+</div>
+
+</body>
+</html>

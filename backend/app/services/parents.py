@@ -9,6 +9,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models import FeeLedger, SchoolClass, Section, Student, User
 from app.schemas.common import Page, PageParams
 from app.schemas.parent import ChildDashboard, ChildSummary, FeeMonthSummary
+from app.services.dashboard import attendance_card, latest_result_card
 from app.services.scoping import get_student_in_scope, student_scope_clause
 from app.utils.pagination import paginate
 
@@ -44,6 +45,8 @@ async def child_dashboard(
     section = await db.get(Section, student.section_id) if student.section_id else None
     month_start = (today or date.today()).replace(day=1)
     fee = await db.scalar(select(FeeLedger).where(FeeLedger.student_id == student.id, FeeLedger.month == month_start))
+    result_card = await latest_result_card(db, student.id)
+    att_card = await attendance_card(db, student)
     return ChildDashboard(
         child=ChildSummary(
             id=student.id,
@@ -63,4 +66,7 @@ async def child_dashboard(
         )
         if fee
         else None,
+        latest_result=result_card,
+        attendance_percentage=att_card["month_percentage"] if att_card else None,
+        attendance=att_card,
     )

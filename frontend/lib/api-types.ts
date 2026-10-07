@@ -579,6 +579,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/{student_id}/attendance/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attendance Summary */
+        get: operations["attendance_summary_api_v1_students__student_id__attendance_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/{student_id}/attendance/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attendance Calendar */
+        get: operations["attendance_calendar_api_v1_students__student_id__attendance_calendar_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/{student_id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Student Results */
+        get: operations["student_results_api_v1_students__student_id__results_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers": {
         parameters: {
             query?: never;
@@ -687,6 +738,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/{teacher_id}/attendance/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Attendance Summary */
+        get: operations["attendance_summary_api_v1_teachers__teacher_id__attendance_summary_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/parent/children": {
         parameters: {
             query?: never;
@@ -750,6 +818,471 @@ export interface paths {
          * @description Allowed values for the dropdowns in the student and teacher forms.
          */
         get: operations["options_api_v1_meta_options_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Roster */
+        get: operations["get_roster_api_v1_attendance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/attendance/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bulk Save */
+        post: operations["bulk_save_api_v1_attendance_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teacher-attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Roster */
+        get: operations["get_roster_api_v1_teacher_attendance_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teacher-attendance/bulk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bulk Save */
+        post: operations["bulk_save_api_v1_teacher_attendance_bulk_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/holidays": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Holidays */
+        get: operations["list_holidays_api_v1_holidays_get"];
+        put?: never;
+        /** Create Holiday */
+        post: operations["create_holiday_api_v1_holidays_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/holidays/{holiday_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete Holiday */
+        delete: operations["delete_holiday_api_v1_holidays__holiday_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/attendance/class": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Class Report */
+        get: operations["class_report_api_v1_reports_attendance_class_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/attendance/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Overview */
+        get: operations["overview_api_v1_reports_attendance_overview_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reports/attendance/low": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Low Attendance */
+        get: operations["low_attendance_api_v1_reports_attendance_low_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Exams */
+        get: operations["list_exams_api_v1_exams_get"];
+        put?: never;
+        /** Create Exam */
+        post: operations["create_exam_api_v1_exams_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Exam */
+        get: operations["get_exam_api_v1_exams__exam_id__get"];
+        /** Update Exam */
+        put: operations["update_exam_api_v1_exams__exam_id__put"];
+        post?: never;
+        /** Delete Exam */
+        delete: operations["delete_exam_api_v1_exams__exam_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/subjects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Exam Subjects */
+        get: operations["get_exam_subjects_api_v1_exams__exam_id__subjects_get"];
+        /** Replace Exam Subjects */
+        put: operations["replace_exam_subjects_api_v1_exams__exam_id__subjects_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/subjects/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reset Exam Subjects */
+        post: operations["reset_exam_subjects_api_v1_exams__exam_id__subjects_reset_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish Exam */
+        post: operations["publish_exam_api_v1_exams__exam_id__publish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unpublish Exam */
+        post: operations["unpublish_exam_api_v1_exams__exam_id__unpublish_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/marks-sheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Marks Sheet */
+        get: operations["marks_sheet_api_v1_exams__exam_id__marks_sheet_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/marks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save Marks */
+        put: operations["save_marks_api_v1_exams__exam_id__marks_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/students/{student_id}/entry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Student Entry */
+        get: operations["student_entry_api_v1_exams__exam_id__students__student_id__entry_get"];
+        /** Save Student Entry */
+        put: operations["save_student_entry_api_v1_exams__exam_id__students__student_id__entry_put"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Class Results */
+        get: operations["class_results_api_v1_exams__exam_id__results_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/results/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export Results */
+        get: operations["export_results_api_v1_exams__exam_id__results_export_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/results/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Bulk Result Pdf */
+        get: operations["bulk_result_pdf_api_v1_exams__exam_id__results_pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/analytics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Analytics */
+        get: operations["analytics_api_v1_exams__exam_id__analytics_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exams/{exam_id}/marks-progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Marks Progress */
+        get: operations["marks_progress_api_v1_exams__exam_id__marks_progress_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/results/{result_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Result */
+        get: operations["get_result_api_v1_results__result_id__get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/results/{result_id}/pdf": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Result Pdf */
+        get: operations["result_pdf_api_v1_results__result_id__pdf_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Student Dashboard */
+        get: operations["student_dashboard_api_v1_student_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/ceo/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Ceo Dashboard */
+        get: operations["ceo_dashboard_api_v1_ceo_dashboard_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -840,6 +1373,43 @@ export interface components {
             /** Subject Name */
             subject_name: string;
         };
+        /** AttendanceRecordIn */
+        AttendanceRecordIn: {
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            status: components["schemas"]["AttendanceStatus"];
+            /** Remarks */
+            remarks?: string | null;
+        };
+        /**
+         * AttendanceStatus
+         * @enum {string}
+         */
+        AttendanceStatus: "present" | "absent" | "late" | "sick";
+        /** AttendanceSummary */
+        AttendanceSummary: {
+            /** Month */
+            month: string;
+            /** Present */
+            present: number;
+            /** Absent */
+            absent: number;
+            /** Late */
+            late: number;
+            /** Sick */
+            sick: number;
+            /** School Days */
+            school_days: number;
+            /** Month Percentage */
+            month_percentage: string;
+            /** Year Percentage */
+            year_percentage: string;
+            /** Below Threshold */
+            below_threshold: boolean;
+        };
         /** Body_upload_logo_api_v1_settings_logo_post */
         Body_upload_logo_api_v1_settings_logo_post: {
             /** File */
@@ -855,6 +1425,61 @@ export interface components {
             /** File */
             file: string;
         };
+        /** BulkAttendanceIn */
+        BulkAttendanceIn: {
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Section Id */
+            section_id?: string | null;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Records */
+            records: components["schemas"]["AttendanceRecordIn"][];
+        };
+        /** BulkAttendanceResult */
+        BulkAttendanceResult: {
+            /** Saved */
+            saved: number;
+            /** Counts */
+            counts: {
+                [key: string]: number;
+            };
+        };
+        /** BulkTeacherAttendanceIn */
+        BulkTeacherAttendanceIn: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Records */
+            records: components["schemas"]["TeacherAttendanceRecordIn"][];
+        };
+        /** CalendarDay */
+        CalendarDay: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Status */
+            status: string | null;
+            /** Holiday Name */
+            holiday_name?: string | null;
+        };
+        /** CalendarOut */
+        CalendarOut: {
+            /** Month */
+            month: string;
+            /** Days */
+            days: components["schemas"]["CalendarDay"][];
+        };
         /** ChangePasswordRequest */
         ChangePasswordRequest: {
             /** Current Password */
@@ -864,8 +1489,9 @@ export interface components {
         };
         /**
          * ChildDashboard
-         * @description `latest_result`, `attendance_percentage`, `upcoming_tests` and `announcements` are always null in
-         *     Phase 2. They are part of the schema now so phases 3 to 6 can fill them without breaking clients.
+         * @description `upcoming_tests` and `announcements` stay null until phases 5 and 6. `latest_result` and
+         *     `attendance` are filled in Phase 3; `attendance_percentage` is kept (mirroring
+         *     `attendance.month_percentage`) for any client still reading the Phase 2 shape.
          */
         ChildDashboard: {
             child: components["schemas"]["ChildSummary"];
@@ -877,6 +1503,10 @@ export interface components {
             } | null;
             /** Attendance Percentage */
             attendance_percentage?: number | null;
+            /** Attendance */
+            attendance?: {
+                [key: string]: unknown;
+            } | null;
             /** Upcoming Tests */
             upcoming_tests?: {
                 [key: string]: unknown;
@@ -903,6 +1533,43 @@ export interface components {
             section_name: string | null;
             /** Photo Url */
             photo_url: string | null;
+        };
+        /** ClassAttendanceReport */
+        ClassAttendanceReport: {
+            /**
+             * From Date
+             * Format: date
+             */
+            from_date: string;
+            /**
+             * To Date
+             * Format: date
+             */
+            to_date: string;
+            /** Rows */
+            rows: components["schemas"]["ClassAttendanceRow"][];
+        };
+        /** ClassAttendanceRow */
+        ClassAttendanceRow: {
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /** Roll No */
+            roll_no: string;
+            /** Full Name */
+            full_name: string;
+            /** Present */
+            present: number;
+            /** Absent */
+            absent: number;
+            /** Late */
+            late: number;
+            /** Sick */
+            sick: number;
+            /** Percentage */
+            percentage: string;
         };
         /** ClassIn */
         ClassIn: {
@@ -935,6 +1602,39 @@ export interface components {
              * @default 0
              */
             student_count: number;
+        };
+        /** ClassResultRow */
+        ClassResultRow: {
+            /** Result Id */
+            result_id?: string | null;
+            /** Exam Id */
+            exam_id?: string | null;
+            /** Exam Name */
+            exam_name?: string | null;
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /** Roll No */
+            roll_no: string;
+            /** Full Name */
+            full_name: string;
+            /** Section Name */
+            section_name: string | null;
+            /** Total Obtained */
+            total_obtained: string;
+            /** Total Possible */
+            total_possible: string;
+            /** Percentage */
+            percentage: string;
+            /** Grade */
+            grade: string;
+            /** Rank */
+            rank: number | null;
+            /** Is Pass */
+            is_pass: boolean;
+            status: components["schemas"]["ResultStatus"];
         };
         /** ClassSubjectIn */
         ClassSubjectIn: {
@@ -994,6 +1694,123 @@ export interface components {
          * @enum {string}
          */
         EmploymentType: "full_time" | "part_time" | "contract";
+        /** ExamAnalyticsOut */
+        ExamAnalyticsOut: {
+            /**
+             * Exam Id
+             * Format: uuid
+             */
+            exam_id: string;
+            /** Class Average */
+            class_average: string;
+            /** Highest */
+            highest: string;
+            /** Lowest */
+            lowest: string;
+            /** Pass Percent */
+            pass_percent: string;
+            /** Grade Distribution */
+            grade_distribution: {
+                [key: string]: number;
+            };
+            /** Subjects */
+            subjects: components["schemas"]["SubjectAnalytics"][];
+            /** Top Students */
+            top_students: components["schemas"]["LeaderboardRow"][];
+            /** Not Entered Count */
+            not_entered_count: number;
+            /** Complete Count */
+            complete_count: number;
+            /** Total Students */
+            total_students: number;
+        };
+        /** ExamIn */
+        ExamIn: {
+            /** Name */
+            name: string;
+            type: components["schemas"]["ExamType"];
+            /**
+             * Academic Year Id
+             * Format: uuid
+             */
+            academic_year_id: string;
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Start Date */
+            start_date?: string | null;
+            /** End Date */
+            end_date?: string | null;
+        };
+        /** ExamOut */
+        ExamOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /** Name */
+            name: string;
+            type: components["schemas"]["ExamType"];
+            /**
+             * Academic Year Id
+             * Format: uuid
+             */
+            academic_year_id: string;
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Class Name */
+            class_name: string;
+            /** Start Date */
+            start_date: string | null;
+            /** End Date */
+            end_date: string | null;
+            /** Is Published */
+            is_published: boolean;
+            /** Published At */
+            published_at: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+        };
+        /** ExamSubjectIn */
+        ExamSubjectIn: {
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Total Marks */
+            total_marks: number | string;
+            /** Passing Marks */
+            passing_marks: number | string;
+        };
+        /** ExamSubjectOut */
+        ExamSubjectOut: {
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Total Marks */
+            total_marks: string;
+            /** Passing Marks */
+            passing_marks: string;
+        };
+        /**
+         * ExamType
+         * @enum {string}
+         */
+        ExamType: "1st Term" | "Mid Term" | "Final Term" | "Unit Test";
         /** FeeMonthSummary */
         FeeMonthSummary: {
             /**
@@ -1135,6 +1952,47 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /** HolidayIn */
+        HolidayIn: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Name */
+            name: string;
+        };
+        /** HolidayOut */
+        HolidayOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Name */
+            name: string;
+        };
+        /** LeaderboardRow */
+        LeaderboardRow: {
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /** Full Name */
+            full_name: string;
+            /** Roll No */
+            roll_no: string;
+            /** Percentage */
+            percentage: string;
+            /** Rank */
+            rank: number | null;
+        };
         /** LedgerOut */
         LedgerOut: {
             /** Items */
@@ -1195,6 +2053,101 @@ export interface components {
             /** Logo Url */
             logo_url: string;
         };
+        /** LowAttendanceOut */
+        LowAttendanceOut: {
+            /** Threshold */
+            threshold: number;
+            /** Students */
+            students: components["schemas"]["LowAttendanceRow"][];
+        };
+        /** LowAttendanceRow */
+        LowAttendanceRow: {
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /** Roll No */
+            roll_no: string;
+            /** Full Name */
+            full_name: string;
+            /** Class Name */
+            class_name: string;
+            /** Section Name */
+            section_name: string | null;
+            /** Percentage */
+            percentage: string;
+            /** Guardian Phone */
+            guardian_phone: string | null;
+        };
+        /** MarkEntryRow */
+        MarkEntryRow: {
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /** Roll No */
+            roll_no: string;
+            /** Full Name */
+            full_name: string;
+            /** Total Marks */
+            total_marks: string;
+            /** Passing Marks */
+            passing_marks: string;
+            /** Obtained Marks */
+            obtained_marks: string | null;
+            /** Is Absent */
+            is_absent: boolean;
+        };
+        /** MarkSaveIn */
+        MarkSaveIn: {
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Obtained Marks */
+            obtained_marks: number | string;
+            /**
+             * Is Absent
+             * @default false
+             */
+            is_absent: boolean;
+        };
+        /** MarksBulkSaveIn */
+        MarksBulkSaveIn: {
+            /** Entries */
+            entries: components["schemas"]["MarkSaveIn"][];
+            /** Reason */
+            reason?: string | null;
+        };
+        /** MarksSheetOut */
+        MarksSheetOut: {
+            /**
+             * Exam Id
+             * Format: uuid
+             */
+            exam_id: string;
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Section Id */
+            section_id: string | null;
+            /** Is Locked */
+            is_locked: boolean;
+            /** Rows */
+            rows: components["schemas"]["MarkEntryRow"][];
+        };
         /** Options */
         Options: {
             /** Designations */
@@ -1209,6 +2162,22 @@ export interface components {
             blood_groups: string[];
             /** Student Statuses */
             student_statuses: string[];
+        };
+        /** OverviewOut */
+        OverviewOut: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** School Present Percent */
+            school_present_percent: string;
+            /** Absent Count */
+            absent_count: number;
+            /** Unmarked Sections */
+            unmarked_sections: number;
+            /** Sections */
+            sections: components["schemas"]["SectionOverviewRow"][];
         };
         /** Page[AcademicYearOut] */
         Page_AcademicYearOut_: {
@@ -1240,6 +2209,45 @@ export interface components {
         Page_ClassOut_: {
             /** Items */
             items: components["schemas"]["ClassOut"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Pages */
+            pages: number;
+        };
+        /** Page[ClassResultRow] */
+        Page_ClassResultRow_: {
+            /** Items */
+            items: components["schemas"]["ClassResultRow"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Pages */
+            pages: number;
+        };
+        /** Page[ExamOut] */
+        Page_ExamOut_: {
+            /** Items */
+            items: components["schemas"]["ExamOut"][];
+            /** Total */
+            total: number;
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Pages */
+            pages: number;
+        };
+        /** Page[HolidayOut] */
+        Page_HolidayOut_: {
+            /** Items */
+            items: components["schemas"]["HolidayOut"][];
             /** Total */
             total: number;
             /** Page */
@@ -1346,11 +2354,130 @@ export interface components {
              */
             must_change_password: boolean;
         };
+        /** ResultOut */
+        ResultOut: {
+            /**
+             * Id
+             * Format: uuid
+             */
+            id: string;
+            /**
+             * Exam Id
+             * Format: uuid
+             */
+            exam_id: string;
+            /** Exam Name */
+            exam_name: string;
+            exam_type: components["schemas"]["ExamType"];
+            /** Academic Year Label */
+            academic_year_label: string;
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /** Student Name */
+            student_name: string;
+            /** Roll No */
+            roll_no: string;
+            /** Class Name */
+            class_name: string;
+            /** Section Name */
+            section_name: string | null;
+            /** Father Name */
+            father_name: string | null;
+            /** Subjects */
+            subjects: components["schemas"]["ResultSubjectRow"][];
+            /** Total Obtained */
+            total_obtained: string;
+            /** Total Possible */
+            total_possible: string;
+            /** Percentage */
+            percentage: string;
+            /** Grade */
+            grade: string;
+            /** Rank */
+            rank: number | null;
+            /** Total Ranked */
+            total_ranked: number | null;
+            /** Is Pass */
+            is_pass: boolean;
+            status: components["schemas"]["ResultStatus"];
+            /** Remarks */
+            remarks: string | null;
+            /** Is Published */
+            is_published: boolean;
+        };
+        /**
+         * ResultStatus
+         * @enum {string}
+         */
+        ResultStatus: "draft" | "complete";
+        /** ResultSubjectRow */
+        ResultSubjectRow: {
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Total Marks */
+            total_marks: string;
+            /** Passing Marks */
+            passing_marks: string;
+            /** Obtained Marks */
+            obtained_marks: string;
+            /** Is Absent */
+            is_absent: boolean;
+            /** Status */
+            status: string;
+        };
         /**
          * Role
          * @enum {string}
          */
         Role: "ceo" | "admin" | "teacher" | "student" | "parent";
+        /** RosterOut */
+        RosterOut: {
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Section Id */
+            section_id: string | null;
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Is Holiday */
+            is_holiday: boolean;
+            /** Holiday Name */
+            holiday_name: string | null;
+            /** Is Editable */
+            is_editable: boolean;
+            /** Students */
+            students: components["schemas"]["RosterStudent"][];
+        };
+        /** RosterStudent */
+        RosterStudent: {
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /** Roll No */
+            roll_no: string;
+            /** Full Name */
+            full_name: string;
+            /** Photo Url */
+            photo_url: string | null;
+            status: components["schemas"]["AttendanceStatus"] | null;
+            /** Remarks */
+            remarks: string | null;
+        };
         /** SalaryIn */
         SalaryIn: {
             /** Basic */
@@ -1408,6 +2535,14 @@ export interface components {
             fail_if_any_subject_failed: boolean;
             /** Current Academic Year Id */
             current_academic_year_id: string | null;
+            /** Weekly Off Days */
+            weekly_off_days: number[];
+            /** Attendance Alert Threshold */
+            attendance_alert_threshold: number;
+            /** Backdate Limit Days */
+            backdate_limit_days: number;
+            /** Timezone */
+            timezone: string;
         };
         /**
          * SchoolSettingsUpdate
@@ -1436,6 +2571,14 @@ export interface components {
             fail_if_any_subject_failed?: boolean | null;
             /** Current Academic Year Id */
             current_academic_year_id?: string | null;
+            /** Weekly Off Days */
+            weekly_off_days?: number[] | null;
+            /** Attendance Alert Threshold */
+            attendance_alert_threshold?: number | null;
+            /** Backdate Limit Days */
+            backdate_limit_days?: number | null;
+            /** Timezone */
+            timezone?: string | null;
         };
         /** SectionIn */
         SectionIn: {
@@ -1461,6 +2604,26 @@ export interface components {
              * @default 0
              */
             student_count: number;
+        };
+        /** SectionOverviewRow */
+        SectionOverviewRow: {
+            /**
+             * Class Id
+             * Format: uuid
+             */
+            class_id: string;
+            /** Class Name */
+            class_name: string;
+            /** Section Id */
+            section_id: string | null;
+            /** Section Name */
+            section_name: string | null;
+            /** Present Percent */
+            present_percent: string | null;
+            /** Absent Count */
+            absent_count: number;
+            /** Marked */
+            marked: boolean;
         };
         /** StatusUpdate */
         StatusUpdate: {
@@ -1591,6 +2754,66 @@ export interface components {
              * Format: date-time
              */
             created_at: string;
+            /** Attendance Percentage */
+            attendance_percentage?: string | null;
+            /** Latest Result Grade */
+            latest_result_grade?: string | null;
+        };
+        /** StudentEntryOut */
+        StudentEntryOut: {
+            /**
+             * Exam Id
+             * Format: uuid
+             */
+            exam_id: string;
+            /**
+             * Student Id
+             * Format: uuid
+             */
+            student_id: string;
+            /** Full Name */
+            full_name: string;
+            /** Roll No */
+            roll_no: string;
+            /** Subjects */
+            subjects: components["schemas"]["StudentEntrySubject"][];
+            /** Total Obtained */
+            total_obtained: string;
+            /** Total Possible */
+            total_possible: string;
+            /** Percentage */
+            percentage: string;
+            /** Grade */
+            grade: string | null;
+            /** Is Complete */
+            is_complete: boolean;
+        };
+        /** StudentEntrySaveIn */
+        StudentEntrySaveIn: {
+            /** Subjects */
+            subjects: components["schemas"]["MarkSaveIn"][];
+            /** Reason */
+            reason?: string | null;
+        };
+        /** StudentEntrySubject */
+        StudentEntrySubject: {
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Total Marks */
+            total_marks: string;
+            /** Passing Marks */
+            passing_marks: string;
+            /** Obtained Marks */
+            obtained_marks: string | null;
+            /** Is Absent */
+            is_absent: boolean;
+            /** Status */
+            status: string | null;
         };
         /** StudentListItem */
         StudentListItem: {
@@ -1621,6 +2844,13 @@ export interface components {
             /** Father Phone */
             father_phone: string | null;
             status: components["schemas"]["StudentStatus"];
+        };
+        /** StudentResultsOut */
+        StudentResultsOut: {
+            /** Results */
+            results: components["schemas"]["ClassResultRow"][];
+            /** Trend */
+            trend: components["schemas"]["TrendPoint"][];
         };
         /**
          * StudentStatus
@@ -1663,6 +2893,20 @@ export interface components {
             emergency_phone?: string | null;
             guardian?: components["schemas"]["GuardianUpdate"] | null;
         };
+        /** SubjectAnalytics */
+        SubjectAnalytics: {
+            /**
+             * Subject Id
+             * Format: uuid
+             */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Average Percentage */
+            average_percentage: string;
+            /** Pass Rate */
+            pass_rate: string;
+        };
         /** SubjectIn */
         SubjectIn: {
             /** Name */
@@ -1677,6 +2921,35 @@ export interface components {
             id: string;
             /** Name */
             name: string;
+        };
+        /** TeacherAttendanceRecordIn */
+        TeacherAttendanceRecordIn: {
+            /**
+             * Teacher Id
+             * Format: uuid
+             */
+            teacher_id: string;
+            status: components["schemas"]["TeacherAttendanceStatus"];
+            /** Remarks */
+            remarks?: string | null;
+        };
+        /**
+         * TeacherAttendanceStatus
+         * @enum {string}
+         */
+        TeacherAttendanceStatus: "present" | "absent" | "late" | "leave";
+        /** TeacherAttendanceSummary */
+        TeacherAttendanceSummary: {
+            /** Month */
+            month: string;
+            /** Present */
+            present: number;
+            /** Absent */
+            absent: number;
+            /** Late */
+            late: number;
+            /** Leave */
+            leave: number;
         };
         /** TeacherCreate */
         TeacherCreate: {
@@ -1796,6 +3069,33 @@ export interface components {
             /** Classes */
             classes: string[];
         };
+        /** TeacherRosterOut */
+        TeacherRosterOut: {
+            /**
+             * Date
+             * Format: date
+             */
+            date: string;
+            /** Is Editable */
+            is_editable: boolean;
+            /** Teachers */
+            teachers: components["schemas"]["TeacherRosterRow"][];
+        };
+        /** TeacherRosterRow */
+        TeacherRosterRow: {
+            /**
+             * Teacher Id
+             * Format: uuid
+             */
+            teacher_id: string;
+            /** Full Name */
+            full_name: string;
+            /** Employee Id */
+            employee_id: string;
+            status: components["schemas"]["TeacherAttendanceStatus"] | null;
+            /** Remarks */
+            remarks: string | null;
+        };
         /**
          * TeacherUpdate
          * @description PATCH-like profile edit. Assignments and salary have their own endpoints; `employee_id` is immutable.
@@ -1842,6 +3142,25 @@ export interface components {
             /** Expires In */
             expires_in: number;
             user: components["schemas"]["UserOut"];
+        };
+        /** TrendPoint */
+        TrendPoint: {
+            /**
+             * Exam Id
+             * Format: uuid
+             */
+            exam_id: string;
+            /** Exam Name */
+            exam_name: string;
+            /** Percentage */
+            percentage: string;
+            /** Grade */
+            grade: string;
+        };
+        /** UnpublishIn */
+        UnpublishIn: {
+            /** Reason */
+            reason: string;
         };
         /** UserOut */
         UserOut: {
@@ -3281,6 +4600,103 @@ export interface operations {
             };
         };
     };
+    attendance_summary_api_v1_students__student_id__attendance_summary_get: {
+        parameters: {
+            query: {
+                month: string;
+            };
+            header?: never;
+            path: {
+                student_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AttendanceSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    attendance_calendar_api_v1_students__student_id__attendance_calendar_get: {
+        parameters: {
+            query: {
+                month: string;
+            };
+            header?: never;
+            path: {
+                student_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CalendarOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_results_api_v1_students__student_id__results_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                student_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentResultsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_teachers_api_v1_teachers_get: {
         parameters: {
             query?: {
@@ -3573,6 +4989,39 @@ export interface operations {
             };
         };
     };
+    attendance_summary_api_v1_teachers__teacher_id__attendance_summary_get: {
+        parameters: {
+            query: {
+                month: string;
+            };
+            header?: never;
+            path: {
+                teacher_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherAttendanceSummary"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     children_api_v1_parent_children_get: {
         parameters: {
             query?: {
@@ -3684,6 +5133,1069 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Options"];
+                };
+            };
+        };
+    };
+    get_roster_api_v1_attendance_get: {
+        parameters: {
+            query: {
+                class_id: string;
+                section_id: string;
+                date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RosterOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_save_api_v1_attendance_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkAttendanceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkAttendanceResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_roster_api_v1_teacher_attendance_get: {
+        parameters: {
+            query?: {
+                date?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TeacherRosterOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_save_api_v1_teacher_attendance_bulk_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BulkTeacherAttendanceIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["BulkAttendanceResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_holidays_api_v1_holidays_get: {
+        parameters: {
+            query?: {
+                year?: number | null;
+                page?: number;
+                page_size?: number;
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_HolidayOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_holiday_api_v1_holidays_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HolidayIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HolidayOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_holiday_api_v1_holidays__holiday_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                holiday_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    class_report_api_v1_reports_attendance_class_get: {
+        parameters: {
+            query: {
+                class_id: string;
+                section_id: string;
+                from: string;
+                to: string;
+                format?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ClassAttendanceReport"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    overview_api_v1_reports_attendance_overview_get: {
+        parameters: {
+            query: {
+                date: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OverviewOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    low_attendance_api_v1_reports_attendance_low_get: {
+        parameters: {
+            query?: {
+                threshold?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LowAttendanceOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_exams_api_v1_exams_get: {
+        parameters: {
+            query?: {
+                class_id?: string | null;
+                academic_year_id?: string | null;
+                type?: components["schemas"]["ExamType"] | null;
+                published?: boolean | null;
+                page?: number;
+                page_size?: number;
+                q?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ExamOut_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    create_exam_api_v1_exams_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_exam_api_v1_exams__exam_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_exam_api_v1_exams__exam_id__put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    delete_exam_api_v1_exams__exam_id__delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_exam_subjects_api_v1_exams__exam_id__subjects_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamSubjectOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    replace_exam_subjects_api_v1_exams__exam_id__subjects_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamSubjectIn"][];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamSubjectOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reset_exam_subjects_api_v1_exams__exam_id__subjects_reset_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamSubjectOut"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    publish_exam_api_v1_exams__exam_id__publish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    unpublish_exam_api_v1_exams__exam_id__unpublish_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UnpublishIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    marks_sheet_api_v1_exams__exam_id__marks_sheet_get: {
+        parameters: {
+            query: {
+                subject_id: string;
+                section_id?: string | null;
+            };
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarksSheetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_marks_api_v1_exams__exam_id__marks_put: {
+        parameters: {
+            query: {
+                subject_id: string;
+                section_id?: string | null;
+            };
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["MarksBulkSaveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["MarksSheetOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_entry_api_v1_exams__exam_id__students__student_id__entry_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+                student_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    save_student_entry_api_v1_exams__exam_id__students__student_id__entry_put: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+                student_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentEntrySaveIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["StudentEntryOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    class_results_api_v1_exams__exam_id__results_get: {
+        parameters: {
+            query?: {
+                section_id?: string | null;
+                status?: components["schemas"]["ResultStatus"] | null;
+                page?: number;
+                page_size?: number;
+                q?: string | null;
+            };
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Page_ClassResultRow_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    export_results_api_v1_exams__exam_id__results_export_get: {
+        parameters: {
+            query?: {
+                section_id?: string | null;
+                format?: string;
+            };
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bulk_result_pdf_api_v1_exams__exam_id__results_pdf_get: {
+        parameters: {
+            query?: {
+                section_id?: string | null;
+            };
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    analytics_api_v1_exams__exam_id__analytics_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExamAnalyticsOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    marks_progress_api_v1_exams__exam_id__marks_progress_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                exam_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_result_api_v1_results__result_id__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                result_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ResultOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    result_pdf_api_v1_results__result_id__pdf_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                result_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_dashboard_api_v1_student_dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+        };
+    };
+    ceo_dashboard_api_v1_ceo_dashboard_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
                 };
             };
         };

@@ -17,6 +17,14 @@ docker compose up --build
 - App: http://localhost:3000  (APP_ENV=demo shows demo logins on the sign-in page)
 - API docs: http://localhost:8000/docs
 
+On Windows without Docker, run `run_services.bat` to apply migrations, seed the local
+database, and start the backend and frontend; run `stop_services.bat` to stop those
+processes. PostgreSQL must already be running. The first run creates
+`backend/.env` from `backend/.env.example`; set `DATABASE_URL` and a random
+`JWT_SECRET` there, then run the start script again. Install backend dependencies
+from `backend/requirements-dev.txt` and frontend dependencies with `npm install`
+in `frontend` before starting.
+
 ### Without Docker
 
 ```bash

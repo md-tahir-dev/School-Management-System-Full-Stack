@@ -9,3 +9,6 @@ email-validator>=2.1
 argon2-cffi>=23.1
 pyjwt>=2.8
 python-multipart>=0.0.9
+pypdf>=4.0
+weasyprint>=62
+jinja2>=3.1

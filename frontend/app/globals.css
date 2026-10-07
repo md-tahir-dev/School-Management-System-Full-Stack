@@ -45,3 +45,11 @@
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
 }
+
+/* Result card: print only the card (sidebar, navbar and controls are hidden). */
+@media print {
+  aside, header, .no-print { display: none !important; }
+  .lg\:pl-64 { padding-left: 0 !important; }
+  body { background: #fff !important; }
+  main { max-width: none !important; padding: 0 !important; }
+}

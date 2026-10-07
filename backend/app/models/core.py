@@ -18,7 +18,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, IdMixin, TimestampMixin, enum_col
@@ -85,10 +85,17 @@ class SchoolSettings(IdMixin, TimestampMixin, Base):
     website: Mapped[str | None] = mapped_column(String(200))
     fee_due_day: Mapped[int] = mapped_column(Integer, default=10, server_default="10")
     late_fine_amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), default=0, server_default="0")
-    fail_if_any_subject_failed: Mapped[bool] = mapped_column(Boolean, default=False, server_default=false())
+    fail_if_any_subject_failed: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
     current_academic_year_id: Mapped[uuid.UUID | None] = mapped_column(
         ForeignKey("academic_years.id", ondelete="SET NULL")
     )
+    # --- Phase 3: attendance & results ---
+    weekly_off_days: Mapped[list[int]] = mapped_column(
+        ARRAY(Integer), default=lambda: [7], server_default=text("'{7}'")
+    )  # ISO weekday numbers (Mon=1..Sun=7); default = Sunday only
+    attendance_alert_threshold: Mapped[int] = mapped_column(Integer, default=75, server_default="75")
+    backdate_limit_days: Mapped[int] = mapped_column(Integer, default=7, server_default="7")
+    timezone: Mapped[str] = mapped_column(String(64), default="Asia/Karachi", server_default="Asia/Karachi")
 
 
 class SchoolClass(IdMixin, TimestampMixin, Base):

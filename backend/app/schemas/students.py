@@ -172,6 +172,8 @@ class StudentDetail(BaseModel):
     has_login: bool
     guardian: GuardianOut | None
     created_at: datetime
+    attendance_percentage: Decimal | None = None
+    latest_result_grade: str | None = None
 
 
 class StudentCredentials(BaseModel):

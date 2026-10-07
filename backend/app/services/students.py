@@ -377,6 +377,9 @@ async def build_detail(db: AsyncSession, student: Student) -> StudentDetail:
     discount = await db.scalar(
         select(StudentFeeSetting.discount_percent).where(StudentFeeSetting.student_id == student.id)
     )
+    from app.services.attendance import attendance_percentage_for_student
+    from app.services.exams import latest_grade_for_student
+
     return StudentDetail(
         id=student.id,
         roll_no=student.roll_no,
@@ -403,6 +406,8 @@ async def build_detail(db: AsyncSession, student: Student) -> StudentDetail:
         has_login=student.user_id is not None,
         guardian=GuardianOut.model_validate(guardian) if guardian else None,
         created_at=student.created_at,
+        attendance_percentage=await attendance_percentage_for_student(db, student),
+        latest_result_grade=await latest_grade_for_student(db, student.id),
     )
 
 

@@ -26,13 +26,15 @@ class FeeMonthSummary(BaseModel):
 
 
 class ChildDashboard(BaseModel):
-    """`latest_result`, `attendance_percentage`, `upcoming_tests` and `announcements` are always null in
-    Phase 2. They are part of the schema now so phases 3 to 6 can fill them without breaking clients."""
+    """`upcoming_tests` and `announcements` stay null until phases 5 and 6. `latest_result` and
+    `attendance` are filled in Phase 3; `attendance_percentage` is kept (mirroring
+    `attendance.month_percentage`) for any client still reading the Phase 2 shape."""
 
     child: ChildSummary
     status: StudentStatus
     fee_current_month: FeeMonthSummary | None
-    latest_result: dict[str, Any] | None = None  # phase 3
-    attendance_percentage: float | None = None  # phase 3
+    latest_result: dict[str, Any] | None = None  # phase 3: {exam_name, percentage, grade, rank, total_students, is_pass}
+    attendance_percentage: float | None = None  # phase 3, deprecated: use `attendance.month_percentage`
+    attendance: dict[str, Any] | None = None  # phase 3: {month_percentage, present, absent, late, sick, below_threshold}
     upcoming_tests: list[dict[str, Any]] | None = None  # phase 5
     announcements: list[dict[str, Any]] | None = None  # phase 6

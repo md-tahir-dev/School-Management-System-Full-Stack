@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Clock, GraduationCap, ShieldCheck, Users, UserCog } from "lucide-react";
 import Link from "next/link";
+import { CeoDashboardCards, FamilyDashboardCards } from "@/components/dashboard/cards";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -47,6 +48,8 @@ export default function DashboardHome() {
         description="Live figures and shortcuts for your area appear here as each part of the system comes online."
       />
       {canSeeAccounts && <AccountStats />}
+      {user.role === "ceo" && <CeoDashboardCards />}
+      {(user.role === "parent" || user.role === "student") && <FamilyDashboardCards />}
 
       <Card>
         <CardHeader>
