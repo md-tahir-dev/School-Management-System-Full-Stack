@@ -35,3 +35,11 @@ def test_teacher_can_do_classroom_work():
 def test_parents_cannot_see_salary_or_other_children_lists():
     assert not has_permission(Role.PARENT, "salary:read_own")
     assert not has_permission(Role.PARENT, "students:read")
+
+
+def test_headmaster_reads_everything_but_cannot_write_people_or_users():
+    assert all(has_permission(Role.HEADMASTER, f"{m}:read") for m in MODULES)
+    for module in ("students", "teachers", "users"):
+        assert not has_permission(Role.HEADMASTER, f"{module}:write")
+    for module in ("settings", "attendance", "results", "fees", "salary"):
+        assert has_permission(Role.HEADMASTER, f"{module}:write")

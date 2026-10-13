@@ -11,7 +11,7 @@ from app.schemas.fields import Credential
 from app.services.audit import log_action
 
 
-async def _revoke_sessions(db: AsyncSession, user_id: uuid.UUID) -> None:
+async def revoke_sessions(db: AsyncSession, user_id: uuid.UUID) -> None:
     await db.execute(
         update(RefreshToken)
         .where(RefreshToken.user_id == user_id, RefreshToken.revoked_at.is_(None))
@@ -38,7 +38,7 @@ async def set_user_active(
         return target
     target.is_active = active
     if not active:
-        await _revoke_sessions(db, target.id)  # sign them out everywhere
+        await revoke_sessions(db, target.id)  # sign them out everywhere
     log_action(
         actor,
         "activate" if active else "deactivate",
@@ -61,7 +61,7 @@ async def reset_password(db: AsyncSession, actor: User, target_id: uuid.UUID, *,
     target.password_hash = await ahash_password(temp)
     target.must_change_password = True
     target.failed_login_count, target.first_failed_at, target.locked_until = 0, None, None
-    await _revoke_sessions(db, target.id)
+    await revoke_sessions(db, target.id)
     # the audit entry records that a reset happened, never the password
     log_action(actor, "reset_password", "user", target.id, {"username": target.username}, db=db, ip=ip)
     await db.commit()

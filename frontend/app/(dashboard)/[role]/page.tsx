@@ -3,13 +3,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Clock, GraduationCap, ShieldCheck, Users, UserCog } from "lucide-react";
 import Link from "next/link";
-import { CeoDashboardCards, FamilyDashboardCards } from "@/components/dashboard/cards";
+import { CeoDashboardCards, FeesThisMonthCard, FamilyDashboardCards } from "@/components/dashboard/cards";
+import { LatestAnnouncements, UpcomingCard } from "@/components/dashboard/news";
+import { TodaysDiary } from "@/components/dashboard/todays-diary";
+import { TodaysLectures } from "@/components/dashboard/todays-lectures";
 import { PageHeader } from "@/components/page-header";
 import { StatCard } from "@/components/stat-card";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { navHref, ROLE_CONFIG } from "@/lib/role-config";
+import { isManager, isSchoolWide, navHref, ROLE_CONFIG } from "@/lib/role-config";
 import type { Page, User } from "@/lib/types";
 import { greeting } from "@/lib/utils";
 
@@ -37,7 +40,7 @@ function AccountStats() {
 export default function DashboardHome() {
   const { user } = useAuth();
   if (!user) return null;
-  const canSeeAccounts = user.role === "admin" || user.role === "ceo";
+  const canSeeAccounts = isSchoolWide(user.role);
   const nav = ROLE_CONFIG[user.role].nav.filter((n) => n.path !== "");
   const firstName = (user.full_name || user.username).split(" ")[0];
 
@@ -48,8 +51,16 @@ export default function DashboardHome() {
         description="Live figures and shortcuts for your area appear here as each part of the system comes online."
       />
       {canSeeAccounts && <AccountStats />}
-      {user.role === "ceo" && <CeoDashboardCards />}
+      {(user.role === "ceo" || user.role === "headmaster") && <CeoDashboardCards />}
+      {isManager(user.role) && <FeesThisMonthCard />}
       {(user.role === "parent" || user.role === "student") && <FamilyDashboardCards />}
+      {(user.role === "parent" || user.role === "student") && <TodaysDiary />}
+      {(user.role === "teacher" || user.role === "parent" || user.role === "student") && <TodaysLectures />}
+
+      <div className="mb-8 grid gap-4 lg:grid-cols-2">
+        <LatestAnnouncements />
+        <UpcomingCard />
+      </div>
 
       <Card>
         <CardHeader>

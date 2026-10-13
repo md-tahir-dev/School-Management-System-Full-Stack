@@ -17,6 +17,7 @@ import { EmptyState, ErrorState, ListSkeleton } from "@/components/ui/state-view
 import { useUnsavedWarning } from "@/hooks/use-unsaved-warning";
 import { api, apiBlob, ApiError, saveBlob } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { isManager } from "@/lib/role-config";
 import { fmtPct, num, todayIn } from "@/lib/format";
 import { useClasses, useSections, useSettings } from "@/lib/queries";
 import type { BulkResult, ClassAttendanceReport, LowAttendanceOut, OverviewOut, TeacherAttendanceStatus, TeacherRoster } from "@/lib/types";
@@ -212,7 +213,7 @@ export function AttendanceReports() {
       {tab === "overview" && <Overview today={today} />}
       {tab === "class" && <ClassReport today={today} threshold={threshold} />}
       {tab === "low" && <LowAttendance defaultThreshold={threshold} />}
-      {tab === "teachers" && <TeacherAttendance today={today} canEdit={user?.role === "admin"} />}
+      {tab === "teachers" && <TeacherAttendance today={today} canEdit={isManager(user?.role)} />}
     </>
   );
 }

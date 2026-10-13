@@ -7,6 +7,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { DataTable, type Column } from "@/components/tables/data-table";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { isSchoolWide } from "@/lib/role-config";
 import type { Page, Role, User } from "@/lib/types";
 import { capitalize, formatDateTime, initials } from "@/lib/utils";
 
@@ -15,6 +16,7 @@ const ROLE_FILTERS: { value: "" | Role; label: string }[] = [
   { value: "", label: "All roles" },
   { value: "admin", label: "Admin" },
   { value: "ceo", label: "CEO" },
+  { value: "headmaster", label: "Headmaster" },
   { value: "teacher", label: "Teacher" },
   { value: "student", label: "Student" },
   { value: "parent", label: "Parent" },
@@ -55,7 +57,7 @@ export default function UsersPage() {
     queryKey: ["users", { page, q, role }],
     queryFn: ({ signal }) => api<Page<User>>("/users", { query: { page, page_size: PAGE_SIZE, q, role }, signal }),
     placeholderData: keepPreviousData,
-    enabled: user?.role === "admin" || user?.role === "ceo",
+    enabled: isSchoolWide(user?.role),
   });
 
   const onSearch = useCallback((value: string) => {
@@ -63,7 +65,7 @@ export default function UsersPage() {
     setPage(1);
   }, []);
 
-  if (user && user.role !== "admin" && user.role !== "ceo") {
+  if (user && !isSchoolWide(user.role)) {
     return (
       <div className="py-16 text-center">
         <h1 className="text-xl font-bold">You don't have access to this page</h1>

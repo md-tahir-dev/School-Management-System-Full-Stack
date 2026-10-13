@@ -1,0 +1,8 @@
+# HTTPS certificate is issued automatically for $DOMAIN (its DNS A record must point at this server).
+{$DOMAIN} {
+	encode gzip
+	request_body {
+		max_size 12MB
+	}
+	reverse_proxy web:3000
+}

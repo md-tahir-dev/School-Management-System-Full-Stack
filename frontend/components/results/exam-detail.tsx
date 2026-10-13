@@ -20,6 +20,7 @@ import { Tabs } from "@/components/ui/tabs";
 import { EmptyState, ErrorState, ListSkeleton } from "@/components/ui/state-views";
 import { api, apiBlob, saveBlob } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { isManager } from "@/lib/role-config";
 import { fmtPct, num } from "@/lib/format";
 import { useSections } from "@/lib/queries";
 import type { ClassResultRow, Exam, ExamAnalytics, MarksProgressRow, Page } from "@/lib/types";
@@ -92,7 +93,7 @@ function ResultsSheet({ exam }: { exam: Exam }) {
       filters={<Select aria-label="Filter by section" value={sectionId} onChange={(e) => { setSectionId(e.target.value); setPage(1); }}><option value="">All sections</option>{sections.data?.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}</Select>}
       actions={<>
         <Button variant="outline" size="sm" loading={busy === "csv"} onClick={() => download("csv")}><FileDown className="h-3.5 w-3.5" />CSV</Button>
-        {user?.role === "admin" && <Button variant="outline" size="sm" loading={busy === "pdf"} onClick={() => download("pdf")}><Download className="h-3.5 w-3.5" />Download all cards (PDF)</Button>}
+        {isManager(user?.role) && <Button variant="outline" size="sm" loading={busy === "pdf"} onClick={() => download("pdf")}><Download className="h-3.5 w-3.5" />Download all cards (PDF)</Button>}
       </>}
       isLoading={query.isLoading} isFetching={query.isFetching} error={query.error} onRetry={() => query.refetch()}
       emptyTitle="No results yet" emptyHint="Results appear here as marks are entered." />
@@ -135,7 +136,7 @@ function Analytics({ examId }: { examId: string }) {
 /** F4/F6: exam detail page. Admin gets progress, entry, subjects, publish; CEO sees results + analytics read-only. */
 export function ExamDetail({ examId }: { examId: string }) {
   const { user } = useAuth();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isManager(user?.role);
   const [tab, setTab] = useState<Tab>(isAdmin ? "progress" : "results");
   const [publish, setPublish] = useState<"publish" | "unpublish" | null>(null);
   const exam = useQuery({ queryKey: ["exam", examId], queryFn: () => api<Exam>(`/exams/${examId}`) });

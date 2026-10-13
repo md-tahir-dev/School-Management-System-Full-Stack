@@ -1,7 +1,7 @@
 """Import every model so Alembic autogenerate and Base.metadata see all tables."""
 
 from app.models.attendance import Attendance, SchoolHoliday, TeacherAttendance
-from app.models.content import Announcement, Material, Notification
+from app.models.content import Announcement, DiaryEntry, DiarySubmission, Event, Material, Notification
 from app.models.core import (
     AcademicYear,
     AuditLog,
@@ -20,6 +20,7 @@ from app.models.online_tests import Attempt, AttemptAnswer, OnlineTest, Question
 from app.models.people import Guardian, Student, StudentGuardian, Teacher, TeacherAssignment
 from app.models.results import Exam, ExamSubject, Result, ResultItem
 from app.models.salary import SalaryAdvance, SalaryRecord, SalaryStructure
+from app.models.timetable import ClassTeacher, Period, TimetableEntry
 
 __all__ = [
     "AcademicYear",
@@ -29,7 +30,11 @@ __all__ = [
     "Attendance",
     "AuditLog",
     "ClassSubject",
+    "ClassTeacher",
     "Counter",
+    "DiaryEntry",
+    "DiarySubmission",
+    "Event",
     "Exam",
     "ExamSubject",
     "FeeLedger",
@@ -39,6 +44,7 @@ __all__ = [
     "Notification",
     "OnlineTest",
     "Payment",
+    "Period",
     "PaymentAllocation",
     "Question",
     "RefreshToken",
@@ -59,5 +65,6 @@ __all__ = [
     "Teacher",
     "TeacherAssignment",
     "TeacherAttendance",
+    "TimetableEntry",
     "User",
 ]

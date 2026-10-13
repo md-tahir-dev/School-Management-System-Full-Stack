@@ -1,9 +1,10 @@
 "use client";
 
-import { GraduationCap, LogOut, X } from "lucide-react";
+import { LogOut, X } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { BrandMark } from "@/components/brand-mark";
 import { cn } from "@/lib/utils";
 import { navHref, ROLE_CONFIG } from "@/lib/role-config";
 import type { Role } from "@/lib/types";
@@ -11,6 +12,7 @@ import type { Role } from "@/lib/types";
 interface SidebarProps {
   role: Role;
   schoolName: string;
+  logoUrl?: string | null;
   open: boolean;
   onClose: () => void;
   onSignOut: () => void;
@@ -19,7 +21,7 @@ interface SidebarProps {
 function NavList({ role, onNavigate }: { role: Role; onNavigate?: () => void }) {
   const pathname = usePathname();
   return (
-    <nav aria-label="Main" className="flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
+    <nav aria-label="Main" className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-3 py-4">
       {ROLE_CONFIG[role].nav.map((item) => {
         const href = navHref(role, item);
         const active = item.path === "" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
@@ -46,13 +48,11 @@ function NavList({ role, onNavigate }: { role: Role; onNavigate?: () => void }) 
   );
 }
 
-function SidebarBody({ role, schoolName, onNavigate, onSignOut, onClose }: Omit<SidebarProps, "open"> & { onNavigate?: () => void }) {
+function SidebarBody({ role, schoolName, logoUrl, onNavigate, onSignOut, onClose }: Omit<SidebarProps, "open"> & { onNavigate?: () => void }) {
   return (
     <div className="flex h-full flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 shrink-0 items-center gap-3 border-b border-white/10 px-5">
-        <span className="flex h-9 w-9 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
-          <GraduationCap className="h-5 w-5" aria-hidden />
-        </span>
+        <BrandMark logoUrl={logoUrl} className="h-9 w-9 shrink-0" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-bold text-white">{schoolName}</p>
           <p className="text-xs text-sidebar-foreground/60">{ROLE_CONFIG[role].label} portal</p>

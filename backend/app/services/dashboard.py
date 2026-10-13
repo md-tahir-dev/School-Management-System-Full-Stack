@@ -67,22 +67,13 @@ async def student_own_dashboard(db: AsyncSession, user: User) -> dict[str, Any]:
     student = await db.scalar(select(Student).where(Student.user_id == user.id, Student.is_deleted.is_(False)))
     if student is None:
         raise not_found("Student profile")
-    klass = await db.get(SchoolClass, student.class_id)
-    return {
-        "child": {
-            "id": student.id, "full_name": student.full_name, "roll_no": student.roll_no,
-            "class_name": klass.name if klass else "", "section_name": None, "photo_url": student.photo_url,
-        },
-        "status": student.status,
-        "latest_result": await latest_result_card(db, student.id),
-        "attendance": await attendance_card(db, student),
-        "upcoming_tests": None,
-        "announcements": None,
-    }
+    from app.services.parents import child_dashboard  # parents imports this module's cards
+
+    return (await child_dashboard(db, user, student.id)).model_dump(mode="json")
 
 
 async def ceo_dashboard(db: AsyncSession, user: User) -> dict[str, Any]:
-    if user.role != Role.CEO:
+    if user.role not in (Role.CEO, Role.HEADMASTER):
         raise forbidden()
     school = await get_school_settings(db)
     today = _today(school)

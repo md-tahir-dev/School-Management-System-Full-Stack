@@ -84,6 +84,7 @@ export function DashboardShell({ role, children }: { role: Role; children: React
       <Sidebar
         role={role}
         schoolName={config?.school_name ?? "School"}
+        logoUrl={config?.logo_url}
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onSignOut={signOut}

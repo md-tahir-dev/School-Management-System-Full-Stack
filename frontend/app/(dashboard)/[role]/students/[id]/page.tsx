@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { StudentAttendanceTab } from "@/components/attendance/student-attendance-tab";
 import { StudentResultsTab } from "@/components/results/student-results-tab";
+import { StudentProfileTab } from "@/components/students/student-profile-tab";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { Card } from "@/components/ui/card";
@@ -13,14 +14,15 @@ import { Tabs } from "@/components/ui/tabs";
 import { AccessDenied, ErrorState, ListSkeleton, PageBoundary } from "@/components/ui/state-views";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { isSchoolWide } from "@/lib/role-config";
 import { fmtPct } from "@/lib/format";
 import type { StudentDetail } from "@/lib/types";
 
-/** Profile header card plus the Phase 3 tabs (Attendance, Results). Other profile tabs belong to a later pass. */
+/** Profile header card plus Profile, Attendance and Results tabs. */
 export default function StudentProfile({ params }: { params: { id: string } }) {
   const { user } = useAuth();
-  const [tab, setTab] = useState<"attendance" | "results">("attendance");
-  const allowed = user?.role === "admin" || user?.role === "ceo" || user?.role === "teacher";
+  const [tab, setTab] = useState<"profile" | "attendance" | "results">("attendance");
+  const allowed = isSchoolWide(user?.role) || user?.role === "teacher";
   const q = useQuery({ queryKey: ["student", params.id], queryFn: () => api<StudentDetail>(`/students/${params.id}`), enabled: allowed });
   if (user && !allowed) return <AccessDenied />;
   if (q.isLoading) return <ListSkeleton rows={3} />;
@@ -34,8 +36,8 @@ export default function StudentProfile({ params }: { params: { id: string } }) {
         <Card className="p-4"><p className="text-2xl font-bold tabular-nums">{s.attendance_percentage === null || s.attendance_percentage === undefined ? "-" : fmtPct(s.attendance_percentage)}</p><p className="text-sm text-muted-foreground">Attendance</p></Card>
         <Card className="p-4"><p className="text-2xl font-bold">{s.latest_result_grade ?? "-"}</p><p className="text-sm text-muted-foreground">Latest grade</p></Card>
       </div>
-      <Tabs label="Student sections" value={tab} onChange={setTab} tabs={[{ key: "attendance", label: "Attendance" }, { key: "results", label: "Results" }]} />
-      {tab === "attendance" ? <StudentAttendanceTab studentId={s.id} /> : <StudentResultsTab studentId={s.id} />}
+      <Tabs label="Student sections" value={tab} onChange={setTab} tabs={[{ key: "attendance", label: "Attendance" }, { key: "results", label: "Results" }, { key: "profile", label: "Profile" }]} />
+      {tab === "profile" ? <StudentProfileTab student={s} /> : tab === "attendance" ? <StudentAttendanceTab studentId={s.id} /> : <StudentResultsTab studentId={s.id} />}
     </PageBoundary>
   );
 }

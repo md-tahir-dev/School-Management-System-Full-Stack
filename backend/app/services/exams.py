@@ -11,13 +11,14 @@ same session). Reusing one audited helper instead of re-deriving the rollback da
 import csv
 import io
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
-from sqlalchemy import delete, func, select, text
+from sqlalchemy import ColumnElement, delete, func, select, text, true
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, forbidden, invalid, not_found
+from app.core.permissions import MANAGERS, SCHOOL_WIDE
 from app.models import (
     AcademicYear,
     ClassSubject,
@@ -60,7 +61,13 @@ from app.schemas.results import (
 from app.services.audit import log_action
 from app.services.dbutil import flush_or_conflict
 from app.services.grading import SubjectMark, grade_for, is_overall_pass, percentage, round2, subject_status
-from app.services.scoping import get_student_in_scope, teacher_assigned_to_subject, teacher_id_for
+from app.services.scoping import (
+    get_student_in_scope,
+    student_scope_clause,
+    teacher_assigned_to_section,
+    teacher_assigned_to_subject,
+    teacher_id_for,
+)
 from app.services.settings import get_school_settings
 from app.utils.money import money
 from app.utils.pagination import like_pattern, paginate
@@ -266,8 +273,12 @@ async def reset_exam_subjects_from_class(db: AsyncSession, actor: User, exam_id:
 
 
 # ---------------------------------------------------------------------- roster
-async def _class_roster(db: AsyncSession, class_id: uuid.UUID, *, section_id: uuid.UUID | None = None) -> list[Student]:
-    stmt = select(Student).where(Student.class_id == class_id, Student.is_deleted.is_(False), Student.status == StudentStatus.ACTIVE)
+async def _class_roster(
+    db: AsyncSession, class_id: uuid.UUID, *, section_id: uuid.UUID | None = None, scope: ColumnElement[bool] = true()
+) -> list[Student]:
+    stmt = select(Student).where(
+        Student.class_id == class_id, Student.is_deleted.is_(False), Student.status == StudentStatus.ACTIVE, scope
+    )
     if section_id:
         stmt = stmt.where(Student.section_id == section_id)
     return list((await db.scalars(stmt.order_by(Student.roll_no))).all())
@@ -278,7 +289,16 @@ async def _assert_teacher_subject_scope(db: AsyncSession, actor: User, exam: Exa
         return
     teacher_id = await teacher_id_for(db, actor)
     if teacher_id is None or not await teacher_assigned_to_subject(db, teacher_id, exam.class_id, section_id, subject_id):
-        raise forbidden("You are not assigned to teach this subject for this class/section.")
+        raise not_found("Class section")  # out of scope is 404, never 403
+
+
+async def _assert_teacher_class_scope(db: AsyncSession, actor: User, exam: Exam, section_id: uuid.UUID | None) -> None:
+    """Result reads: a teacher must teach (any subject in) the exam's class, and the section if one is given."""
+    if actor.role != Role.TEACHER:
+        return
+    teacher_id = await teacher_id_for(db, actor)
+    if teacher_id is None or not await teacher_assigned_to_section(db, teacher_id, exam.class_id, section_id):
+        raise not_found("Exam")
 
 
 # ------------------------------------------------------------------- ranking
@@ -360,7 +380,9 @@ async def get_marks_sheet(db: AsyncSession, actor: User, exam_id: uuid.UUID, sec
         raise not_found("This subject is not part of this exam")
     await _assert_teacher_subject_scope(db, actor, exam, section_id, subject_id)
     subject = await db.get(Subject, subject_id)
-    roster = await _class_roster(db, exam.class_id, section_id=section_id)
+    # a teacher only sees students whose section they teach this subject in (matters when section_id is omitted)
+    scope = await student_scope_clause(db, actor, subject_id=subject_id)
+    roster = await _class_roster(db, exam.class_id, section_id=section_id, scope=scope)
     rows = []
     for s in roster:
         row = await _marks_sheet_row(db, exam, subject_id, s)
@@ -380,14 +402,19 @@ async def save_marks_bulk(db: AsyncSession, actor: User, exam_id: uuid.UUID, sub
     if exam.is_published:
         if actor.role == Role.TEACHER:
             raise forbidden("This exam is published; marks can no longer be edited.")
-        if actor.role == Role.ADMIN and not body.reason:
+        if actor.role in MANAGERS and not body.reason:
             raise invalid("A reason is required to edit marks after publishing.", {"reason": "Reason is required"})
     await _assert_teacher_subject_scope(db, actor, exam, section_id, subject_id)
 
-    roster_ids = {s.id for s in await _class_roster(db, exam.class_id, section_id=section_id)}
+    # Per-student scope, not just per-request: without a section_id the request-level check above only
+    # proves the teacher teaches this subject in *some* section of the class.
+    scope = await student_scope_clause(db, actor, subject_id=subject_id)
+    roster_ids = {s.id for s in await _class_roster(db, exam.class_id, section_id=section_id, scope=scope)}
     changed_students: set[uuid.UUID] = set()
     for entry in body.entries:
         if entry.student_id not in roster_ids:
+            if actor.role == Role.TEACHER:
+                raise not_found("Student")
             raise invalid("Some students are not on this class/section's roster.", {"entries": "Unknown student"})
         if entry.obtained_marks > exam_subject.total_marks:
             raise invalid(
@@ -406,7 +433,7 @@ async def save_marks_bulk(db: AsyncSession, actor: User, exam_id: uuid.UUID, sub
             )
             db.add(item)
         else:
-            if exam.is_published and actor.role == Role.ADMIN:
+            if exam.is_published and actor.role in MANAGERS:
                 old_values = {"obtained_marks": str(item.obtained_marks), "is_absent": item.is_absent}
             item.total_marks = exam_subject.total_marks  # re-snapshot at this save
             item.passing_marks = exam_subject.passing_marks
@@ -426,7 +453,7 @@ async def save_marks_bulk(db: AsyncSession, actor: User, exam_id: uuid.UUID, sub
         await _recompute_result(db, exam, student_id)
     await db.flush()
     await recompute_ranks(db, exam_id)
-    if not (exam.is_published and actor.role == Role.ADMIN):
+    if not (exam.is_published and actor.role in MANAGERS):
         log_action(
             actor, "bulk_save", "marks", subject_id,
             {"exam_id": str(exam_id), "subject_id": str(subject_id), "section_id": str(section_id), "count": len(body.entries)},
@@ -491,7 +518,7 @@ async def publish_exam(db: AsyncSession, actor: User, exam_id: uuid.UUID, ip: st
         raise AppError(409, "ALREADY_PUBLISHED", "This exam is already published.")
     await recompute_ranks(db, exam_id)
     exam.is_published = True
-    exam.published_at = datetime.now(timezone.utc)
+    exam.published_at = datetime.now(UTC)
     exam.published_by = actor.id
     log_action(actor, "publish", "exam", exam.id, {"name": exam.name}, db=db, ip=ip)
 
@@ -530,25 +557,19 @@ async def unpublish_exam(db: AsyncSession, actor: User, exam_id: uuid.UUID, reas
 
 
 # ------------------------------------------------------------------------ reading
-def _visible_clause(actor: User):
-    """Unpublished results: Admin/Teacher only. Published: everyone with scope."""
-    if actor.role in (Role.ADMIN, Role.TEACHER):
-        return None
-    return Exam.is_published.is_(True)
-
-
 async def class_results(db: AsyncSession, actor: User, exam_id: uuid.UUID, params: PageParams, section_id: uuid.UUID | None, status_: str | None) -> Page:
     exam = await _exam_or_404(db, exam_id)
-    if actor.role not in (Role.ADMIN, Role.TEACHER, Role.CEO):
+    if actor.role not in (*SCHOOL_WIDE, Role.TEACHER):
         raise forbidden()
     if not exam.is_published and actor.role == Role.CEO:
         raise not_found("Exam")
+    await _assert_teacher_class_scope(db, actor, exam, section_id)
 
     stmt = (
         select(Result, Student.roll_no, Student.full_name, Section.name)
         .join(Student, Student.id == Result.student_id)
         .outerjoin(Section, Section.id == Student.section_id)
-        .where(Result.exam_id == exam_id)
+        .where(Result.exam_id == exam_id, await student_scope_clause(db, actor))
         .order_by(Result.rank.is_(None), Result.rank, Student.roll_no)
     )
     if section_id:
@@ -605,9 +626,9 @@ async def get_result(db: AsyncSession, actor: User, result_id: uuid.UUID) -> Res
     if result is None:
         raise not_found("Result")
     exam = await _exam_or_404(db, result.exam_id)
-    if not exam.is_published and actor.role not in (Role.ADMIN, Role.TEACHER):
+    if not exam.is_published and actor.role not in (*MANAGERS, Role.TEACHER):
         raise not_found("Result")
-    student = await get_student_in_scope(db, actor, result.student_id) if actor.role in (Role.STUDENT, Role.PARENT) else await _student_or_404(db, result.student_id)
+    student = await get_student_in_scope(db, actor, result.student_id)
     return await _result_out(db, result, exam, student)
 
 
@@ -619,7 +640,7 @@ async def student_results(db: AsyncSession, actor: User, student_id: uuid.UUID) 
         .where(Result.student_id == student.id, Result.status == ResultStatus.COMPLETE)
         .order_by(Exam.created_at)
     )
-    if actor.role not in (Role.ADMIN, Role.TEACHER):
+    if actor.role not in (*MANAGERS, Role.TEACHER):
         stmt = stmt.where(Exam.is_published.is_(True))
     rows = (await db.execute(stmt)).all()
     results = [
@@ -638,12 +659,19 @@ async def student_results(db: AsyncSession, actor: User, student_id: uuid.UUID) 
 # ------------------------------------------------------------------------ analytics
 async def exam_analytics(db: AsyncSession, actor: User, exam_id: uuid.UUID) -> ExamAnalyticsOut:
     exam = await _exam_or_404(db, exam_id)
-    if actor.role not in (Role.ADMIN, Role.TEACHER, Role.CEO):
+    if actor.role not in (*SCHOOL_WIDE, Role.TEACHER):
         raise forbidden()
+    if not exam.is_published and actor.role == Role.CEO:
+        raise not_found("Exam")  # same rule as class_results: CEO sees published exams only
+    await _assert_teacher_class_scope(db, actor, exam, None)
+    scope = await student_scope_clause(db, actor)  # true() for school-wide readers
 
-    complete = (await db.scalars(select(Result).where(Result.exam_id == exam_id, Result.status == ResultStatus.COMPLETE))).all()
-    roster_size = len(await _class_roster(db, exam.class_id))
-    entered = await db.scalar(select(func.count(func.distinct(Result.student_id))).select_from(Result).where(Result.exam_id == exam_id))
+    def scoped_results():
+        return select(Result).join(Student, Student.id == Result.student_id).where(Result.exam_id == exam_id, scope)
+
+    complete = (await db.scalars(scoped_results().where(Result.status == ResultStatus.COMPLETE))).all()
+    roster_size = len(await _class_roster(db, exam.class_id, scope=scope))
+    entered = await db.scalar(scoped_results().with_only_columns(func.count(func.distinct(Result.student_id))))
 
     if complete:
         percentages = [r.percentage for r in complete]
@@ -667,7 +695,10 @@ async def exam_analytics(db: AsyncSession, actor: User, exam_id: uuid.UUID) -> E
     for subject_id, name in subject_rows:
         items = (
             await db.scalars(
-                select(ResultItem).join(Result, Result.id == ResultItem.result_id).where(Result.exam_id == exam_id, ResultItem.subject_id == subject_id)
+                select(ResultItem)
+                .join(Result, Result.id == ResultItem.result_id)
+                .join(Student, Student.id == Result.student_id)
+                .where(Result.exam_id == exam_id, ResultItem.subject_id == subject_id, scope)
             )
         ).all()
         if items:

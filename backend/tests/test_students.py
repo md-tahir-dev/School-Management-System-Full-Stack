@@ -13,6 +13,7 @@ from app.models import (
     Counter,
     FeeLedger,
     Guardian,
+    RefreshToken,
     Role,
     Student,
     StudentGuardian,
@@ -23,7 +24,7 @@ from app.schemas.students import StudentCreate
 from app.services import students as student_svc
 from app.services.fees import academic_year_months
 from tests.conftest import DEFAULT_PASSWORD, login
-from tests.helpers import make_school, rand_cnic, rand_phone, student_payload, tag
+from tests.helpers import create_student, make_school, rand_cnic, rand_phone, student_payload, tag
 
 API = "/api/v1"
 JPEG = b"\xff\xd8\xff\xe0" + b"0" * 300
@@ -514,3 +515,49 @@ async def test_photo_upload_checks_content_size_and_renames(client, auth, tmp_pa
 # ------------------------------------------------------------------- errors
 async def test_password_is_default_constant_is_valid():
     assert DEFAULT_PASSWORD
+
+
+async def test_leaving_school_disables_logins_and_reactivation_restores_them(client, auth):
+    _, h = await auth(Role.ADMIN)
+    school = await make_school()
+    parent_name, student_name = f"p{tag()}", f"s{tag()}"
+    guardian = {"father_cnic": rand_cnic(), "father_phone": rand_phone()}
+    first = await create_student(
+        school,
+        logins=student_svc.LoginOverrides(
+            parent=(parent_name, DEFAULT_PASSWORD), student=(student_name, DEFAULT_PASSWORD)
+        ),
+        create_student_login=True,
+        guardian=guardian,
+    )
+    sibling = await create_student(school, guardian=guardian)
+    status_url = f"{API}/students/{{}}/status"
+
+    signed_in = await login(client, student_name)  # cookie jar now holds the student's refresh token
+    assert signed_in.status_code == 200
+    bearer = {"Authorization": f"Bearer {signed_in.json()['access_token']}"}
+
+    expel = {"status": "expelled", "reason": "Left without notice"}
+    assert (await client.put(status_url.format(first.student.id), headers=h, json=expel)).status_code == 200
+
+    assert (await client.get(f"{API}/auth/me", headers=bearer)).status_code == 401  # live access token dies
+    assert (await client.post(f"{API}/auth/refresh")).status_code == 401  # and so does the refresh token
+    client.cookies.clear()
+    assert (await login(client, student_name)).status_code == 403
+    async with SessionLocal() as db:
+        open_tokens = await db.scalar(
+            select(func.count())
+            .select_from(RefreshToken)
+            .where(RefreshToken.user_id == first.student.user_id, RefreshToken.revoked_at.is_(None))
+        )
+        assert open_tokens == 0
+    assert (await login(client, parent_name)).status_code == 200  # the sibling is still enrolled
+
+    leave = {"status": "inactive"}
+    assert (await client.put(status_url.format(sibling.student.id), headers=h, json=leave)).status_code == 200
+    assert (await login(client, parent_name)).status_code == 403  # no active child left
+
+    back = {"status": "active"}
+    assert (await client.put(status_url.format(first.student.id), headers=h, json=back)).status_code == 200
+    assert (await login(client, student_name)).status_code == 200
+    assert (await login(client, parent_name)).status_code == 200

@@ -18,5 +18,7 @@ async def student_dashboard(user: CurrentUser, db: DbSession):
 
 
 @router.get("/ceo/dashboard", response_model=dict[str, Any])
-async def ceo_dashboard(_: Annotated[User, Depends(require_roles(Role.CEO))], user: CurrentUser, db: DbSession):
+async def ceo_dashboard(
+    _: Annotated[User, Depends(require_roles(Role.CEO, Role.HEADMASTER))], user: CurrentUser, db: DbSession
+):
     return await svc.ceo_dashboard(db, user)

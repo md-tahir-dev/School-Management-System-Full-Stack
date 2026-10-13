@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, Query, Request
 from sqlalchemy import or_, select
 
 from app.core.deps import DbSession, require_roles
+from app.core.permissions import SCHOOL_WIDE
 from app.core.ratelimit import client_ip
 from app.models import Role, User
 from app.schemas.academic import ResetPasswordOut
@@ -14,7 +15,7 @@ from app.services import users as svc
 from app.utils.pagination import like_pattern, paginate
 
 # Read: Admin and CEO. Every write below additionally requires Admin.
-router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(require_roles(Role.ADMIN, Role.CEO))])
+router = APIRouter(prefix="/users", tags=["users"], dependencies=[Depends(require_roles(*SCHOOL_WIDE))])
 Admin = Annotated[User, Depends(require_roles(Role.ADMIN))]
 
 

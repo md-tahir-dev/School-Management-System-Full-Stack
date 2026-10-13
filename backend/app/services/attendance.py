@@ -14,7 +14,8 @@ from sqlalchemy import func, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.errors import forbidden, invalid
+from app.core.errors import invalid, not_found
+from app.core.permissions import MANAGERS
 from app.models import (
     AcademicYear,
     Attendance,
@@ -59,7 +60,7 @@ def _is_weekly_off(school, day: date) -> bool:
 async def _editable_for(db: AsyncSession, actor: User, school, day: date) -> tuple[bool, str | None]:
     """(is_editable, reason_if_not). Does NOT check holiday/weekly-off/future - callers check those
     separately since "not editable because it's a holiday" needs a different message than "too old"."""
-    if actor.role == Role.ADMIN:
+    if actor.role in MANAGERS:
         return True, None
     if actor.role == Role.TEACHER:
         today = _today(school)
@@ -100,7 +101,7 @@ async def _assert_teacher_scope(db: AsyncSession, actor: User, class_id: uuid.UU
         return
     teacher_id = await teacher_id_for(db, actor)
     if teacher_id is None or not await teacher_assigned_to_section(db, teacher_id, class_id, section_id):
-        raise forbidden("You are not assigned to this class and section.")
+        raise not_found("Class section")
 
 
 # ----------------------------------------------------------------------- roster

@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFi
 
 from app.core.deps import CurrentUser, DbSession, require_roles
 from app.core.errors import not_found
+from app.core.permissions import SCHOOL_WIDE
 from app.core.ratelimit import client_ip
 from app.models import Role, User
 from app.models.enums import Designation, EmploymentType
@@ -27,13 +28,13 @@ from app.services.storage import StorageBackend, get_storage
 router = APIRouter(prefix="/teachers", tags=["teachers"])
 
 Admin = Annotated[User, Depends(require_roles(Role.ADMIN))]
-AdminOrCeo = Annotated[User, Depends(require_roles(Role.ADMIN, Role.CEO))]
+SchoolWide = Annotated[User, Depends(require_roles(*SCHOOL_WIDE))]
 Params = Annotated[PageParams, Depends(page_params)]
 
 
 @router.get("", response_model=Page[TeacherListItem])
 async def list_teachers(
-    _: AdminOrCeo,
+    _: SchoolWide,
     db: DbSession,
     params: Params,
     subject_id: uuid.UUID | None = Query(None),
@@ -67,7 +68,7 @@ async def my_profile(db: DbSession, user: Annotated[User, Depends(require_roles(
 async def get_teacher(
     teacher_id: uuid.UUID,
     db: DbSession,
-    user: Annotated[User, Depends(require_roles(Role.ADMIN, Role.CEO, Role.TEACHER))],
+    user: Annotated[User, Depends(require_roles(*SCHOOL_WIDE, Role.TEACHER))],
 ):
     return await svc.build_detail(db, await svc.get_teacher_in_scope(db, user, teacher_id))
 

@@ -25,16 +25,16 @@ from app.models import (
     Attendance,
     ClassSubject,
     Exam,
-    SchoolHoliday,
-    TeacherAttendance,
     FeeStructure,
     Guardian,
     Role,
     SchoolClass,
+    SchoolHoliday,
     Section,
     Student,
     Subject,
     Teacher,
+    TeacherAttendance,
     User,
 )
 from app.models.enums import AttendanceStatus, ExamType, StudentStatus, TeacherAttendanceStatus
@@ -275,11 +275,14 @@ async def _seed_people(ids: dict, demo: bool, shown: list[tuple[str, str, str]])
                 shown.append(("teacher", reg.credential.username, reg.credential.temp_password))
 
     students = 0
+    async with SessionLocal() as db:  # sample students joined at the start of the year, so they're billed for all of it
+        year_start = await db.scalar(select(AcademicYear.start_date).where(AcademicYear.is_current.is_(True)))
     for i, (name, dob, gender, klass, section, discount, guardian) in enumerate(STUDENTS):
         payload = StudentCreate(
             full_name=name,
             dob=dob,
             gender=gender,
+            admission_date=year_start,
             class_id=ids["class"][klass],
             section_id=ids["section"][(klass, section)],
             religion="Islam",
@@ -307,7 +310,6 @@ async def _seed_people(ids: dict, demo: bool, shown: list[tuple[str, str, str]])
         if reg.student_credential and not demo:
             shown.append(("student", reg.student_credential.username, reg.student_credential.temp_password))
     return teachers, students
-
 
 
 # ------------------------------------------------------------------ Phase 3 sample data
@@ -378,7 +380,11 @@ async def _seed_phase3(ids: dict) -> None:
         # ---- holidays: 3 sample dates inside the window
         if await db.scalar(select(SchoolHoliday.id).limit(1)) is None:
             candidates = _school_days(today, 30, set())
-            for offset, name in ((5, "Sample Holiday: Iqbal Day"), (12, "Sample Holiday: Teachers' Day"), (20, "Sample Holiday: Sports Day")):
+            for offset, name in (
+                (5, "Sample Holiday: Iqbal Day"),
+                (12, "Sample Holiday: Teachers' Day"),
+                (20, "Sample Holiday: Sports Day"),
+            ):
                 await holiday_svc.create_holiday(db, admin, HolidayIn(date=candidates[-offset], name=name), ip=None)
         holidays = {h.date for h in (await db.scalars(select(SchoolHoliday))).all()}
         days = _school_days(today, 30, holidays)
@@ -409,17 +415,30 @@ async def _seed_phase3(ids: dict) -> None:
                             status = AttendanceStatus.ABSENT if i % 3 == 0 else AttendanceStatus.PRESENT  # 66.7%
                         else:
                             status = rng.choices(
-                                [AttendanceStatus.PRESENT, AttendanceStatus.LATE, AttendanceStatus.SICK, AttendanceStatus.ABSENT],
+                                [
+                                    AttendanceStatus.PRESENT,
+                                    AttendanceStatus.LATE,
+                                    AttendanceStatus.SICK,
+                                    AttendanceStatus.ABSENT,
+                                ],
                                 weights=[90, 5, 3, 2],
                             )[0]
                         records.append(AttendanceRecordIn(student_id=student_id, status=status))
                     await attendance_svc.bulk_save_attendance(
-                        db, admin, BulkAttendanceIn(class_id=class_id, section_id=section_id, date=day, records=records), ip=None
+                        db,
+                        admin,
+                        BulkAttendanceIn(class_id=class_id, section_id=section_id, date=day, records=records),
+                        ip=None,
                     )
 
         # ---- teacher attendance: last 10 school days
         if await db.scalar(select(TeacherAttendance.id).limit(1)) is None:
-            teacher_ids = [t.id for t in (await db.scalars(select(Teacher).where(Teacher.is_deleted.is_(False)).order_by(Teacher.employee_id))).all()]
+            teacher_ids = [
+                t.id
+                for t in (
+                    await db.scalars(select(Teacher).where(Teacher.is_deleted.is_(False)).order_by(Teacher.employee_id))
+                ).all()
+            ]
             for i, day in enumerate(days[-10:]):
                 records = []
                 for j, tid in enumerate(teacher_ids):
@@ -432,7 +451,9 @@ async def _seed_phase3(ids: dict) -> None:
                         status = TeacherAttendanceStatus.ABSENT
                     records.append(TeacherAttendanceRecordIn(teacher_id=tid, status=status))
                 if records:
-                    await teacher_attendance_svc.bulk_save(db, admin, BulkTeacherAttendanceIn(date=day, records=records), ip=None)
+                    await teacher_attendance_svc.bulk_save(
+                        db, admin, BulkTeacherAttendanceIn(date=day, records=records), ip=None
+                    )
 
         # ---- one Mid Term exam per class; Class 1 published, the others left as unpublished drafts
         year = await db.scalar(select(AcademicYear).where(AcademicYear.is_current.is_(True)))
@@ -440,14 +461,21 @@ async def _seed_phase3(ids: dict) -> None:
             if await db.scalar(select(Exam.id).where(Exam.class_id == class_id, Exam.name == "Mid Term")):
                 continue
             exam = await exam_svc.create_exam(
-                db, admin, ExamIn(name="Mid Term", type=ExamType.MID_TERM, academic_year_id=year.id, class_id=class_id), ip=None
+                db,
+                admin,
+                ExamIn(name="Mid Term", type=ExamType.MID_TERM, academic_year_id=year.id, class_id=class_id),
+                ip=None,
             )
             subjects = await exam_svc.get_exam_subjects(db, exam.id)
             names = [s.subject_name for s in subjects]
             roster = (
                 await db.scalars(
                     select(StudentModel)
-                    .where(StudentModel.class_id == class_id, StudentModel.is_deleted.is_(False), StudentModel.status == StudentStatus.ACTIVE)
+                    .where(
+                        StudentModel.class_id == class_id,
+                        StudentModel.is_deleted.is_(False),
+                        StudentModel.status == StudentStatus.ACTIVE,
+                    )
                     .order_by(StudentModel.roll_no)
                 )
             ).all()
@@ -458,7 +486,12 @@ async def _seed_phase3(ids: dict) -> None:
                     cell = _mark_plan(position, names)[subject.subject_name]
                     if cell is not None:
                         entries.append(
-                            MarkSaveIn(student_id=student_id, subject_id=subject.subject_id, obtained_marks=cell[0], is_absent=cell[1])
+                            MarkSaveIn(
+                                student_id=student_id,
+                                subject_id=subject.subject_id,
+                                obtained_marks=cell[0],
+                                is_absent=cell[1],
+                            )
                         )
                 if entries:
                     await exam_svc.save_marks_bulk(
@@ -466,6 +499,64 @@ async def _seed_phase3(ids: dict) -> None:
                     )
             if class_name == "Class 1":
                 await exam_svc.publish_exam(db, admin, exam.id, ip=None)
+
+
+async def _seed_timetable(ids: dict) -> None:
+    """A bell schedule, a Mon-Sat timetable built from the existing teacher assignments, and a class
+    teacher per section. Skipped once any period exists."""
+    from datetime import time
+
+    from app.models import ClassTeacher, Period, TeacherAssignment, TimetableEntry
+
+    async with SessionLocal() as db:
+        if await db.scalar(select(Period.id).limit(1)) is not None:
+            return
+        slots = [
+            ("Period 1", time(8, 0), time(8, 40), False),
+            ("Period 2", time(8, 40), time(9, 20), False),
+            ("Period 3", time(9, 20), time(10, 0), False),
+            ("Break", time(10, 0), time(10, 20), True),
+            ("Period 4", time(10, 20), time(11, 0), False),
+            ("Period 5", time(11, 0), time(11, 40), False),
+        ]
+        periods = [
+            Period(name=n, start_time=a, end_time=b, sort_order=i, is_break=brk)
+            for i, (n, a, b, brk) in enumerate(slots)
+        ]
+        db.add_all(periods)
+        await db.flush()
+        teaching = [p for p in periods if not p.is_break]
+
+        by_section: dict[tuple, list[TeacherAssignment]] = {}
+        for a in (await db.scalars(select(TeacherAssignment))).all():
+            sections = (
+                [a.section_id]
+                if a.section_id
+                else [sid for (c, _), sid in ids["section"].items() if ids["class"][c] == a.class_id]
+            )
+            for sid in sections:
+                by_section.setdefault((a.class_id, sid), []).append(a)
+        busy: set[tuple] = set()  # (teacher_id, weekday, period_id)
+        for (class_id, section_id), assignments in by_section.items():
+            for weekday in range(1, 7):
+                for i, period in enumerate(teaching):
+                    # rotate subjects through the day; a teacher already teaching elsewhere leaves a free period
+                    a = assignments[(weekday + i) % len(assignments)]
+                    if (a.teacher_id, weekday, period.id) in busy:
+                        continue
+                    busy.add((a.teacher_id, weekday, period.id))
+                    db.add(
+                        TimetableEntry(
+                            class_id=class_id,
+                            section_id=section_id,
+                            weekday=weekday,
+                            period_id=period.id,
+                            subject_id=a.subject_id,
+                            teacher_id=a.teacher_id,
+                        )
+                    )
+            db.add(ClassTeacher(class_id=class_id, section_id=section_id, teacher_id=assignments[0].teacher_id))
+        await db.commit()
 
 
 async def seed() -> None:
@@ -505,7 +596,7 @@ async def seed() -> None:
             accounts = [
                 (role, username, name, settings.seed_demo_password)
                 for role, username, name in DEMO_USERS
-                if role in (Role.CEO, Role.ADMIN)
+                if role in (Role.CEO, Role.ADMIN, Role.HEADMASTER)
             ]
         elif not settings.first_admin_password:
             print("FIRST_ADMIN_PASSWORD is not set; skipping user creation.", file=sys.stderr)
@@ -532,6 +623,7 @@ async def seed() -> None:
         ids = await _seed_structure()
         teachers, students = await _seed_people(ids, demo, shown)
         await _seed_phase3(ids)
+        await _seed_timetable(ids)
 
     print(f"Seeded settings + academic year. Users created directly: {', '.join(created) or 'none (already present)'}")
     if sample:

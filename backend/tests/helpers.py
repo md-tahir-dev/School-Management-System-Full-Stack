@@ -65,6 +65,7 @@ async def make_school(fee: str | None = "2000") -> SimpleNamespace:
             db.add(FeeStructure(class_id=klass.id, monthly_fee=Decimal(fee)))
         settings = await get_school_settings(db)
         settings.fee_due_day = 10
+        settings.late_fine_amount = Decimal(0)  # other tests change it and don't reset it
         settings.current_academic_year_id = year.id
         await db.commit()
     return SimpleNamespace(year=year, klass=klass, sec_a=sec_a, sec_b=sec_b, math=math, english=english)

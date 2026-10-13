@@ -2,10 +2,11 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQuery } from "@tanstack/react-query";
-import { Eye, EyeOff, GraduationCap } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+import { BrandMark } from "@/components/brand-mark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -60,20 +61,18 @@ function LoginForm() {
     }
   }
 
-  const schoolName = config?.school_name ?? "School Management System";
+  const schoolName = config?.school_name ?? "";
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,32rem)]">
       {/* exercise-book panel */}
       <section className="ruled-paper relative flex flex-col justify-between bg-primary px-8 py-10 text-primary-foreground sm:px-14 lg:min-h-screen lg:py-14 lg:pl-28">
         <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 items-center justify-center rounded-md bg-secondary text-secondary-foreground">
-            <GraduationCap className="h-5 w-5" aria-hidden />
-          </span>
+          <BrandMark logoUrl={config?.logo_url} className="h-10 w-10" />
           <span className="font-semibold">School portal</span>
         </div>
         <div className="py-10 lg:py-0">
-          <h1 className="max-w-xl text-4xl font-extrabold leading-[1.15] sm:text-5xl">{schoolName}</h1>
+          <h1 className="min-h-[1.15em] max-w-xl text-4xl font-extrabold leading-[1.15] sm:text-5xl">{schoolName}</h1>
           {config?.slogan ? <p className="mt-4 max-w-md text-lg text-blue-100">{config.slogan}</p> : null}
         </div>
         <p className="hidden max-w-sm text-sm text-blue-100/90 lg:block">

@@ -37,3 +37,9 @@ export const WEEKDAYS = [
   { iso: 1, label: "Mon" }, { iso: 2, label: "Tue" }, { iso: 3, label: "Wed" }, { iso: 4, label: "Thu" },
   { iso: 5, label: "Fri" }, { iso: 6, label: "Sat" }, { iso: 7, label: "Sun" },
 ];
+
+export const fmtMoney = (v: string | number | null | undefined) => num(v).toLocaleString(undefined, { maximumFractionDigits: 2 });
+
+/** "Whole school" or "Class 1 A" for an announcement target. */
+export const targetLabel = (a: { class_name: string | null; section_name: string | null }) =>
+  a.class_name ? `${a.class_name}${a.section_name ? ` ${a.section_name}` : ""}` : "Whole school";

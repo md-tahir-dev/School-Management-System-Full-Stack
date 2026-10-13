@@ -31,6 +31,11 @@ ROLE_PERMISSIONS: dict[Role, frozenset[str]] = {
     Role.ADMIN: _all(("read", "write")),
     # Read-only everywhere.
     Role.CEO: _all(("read",)),
+    # Academic head: reads everything, runs academics/finance/settings; no student/teacher/user writes.
+    Role.HEADMASTER: _all(("read",))
+    | frozenset(
+        f"{m}:write" for m in ("settings", "attendance", "results", "tests", "fees", "salary", "reports")
+    ),
     # Only assigned classes/students (scoped in the service layer).
     Role.TEACHER: frozenset(
         {
@@ -71,6 +76,11 @@ ROLE_PERMISSIONS: dict[Role, frozenset[str]] = {
         }
     ),
 }
+
+
+# Role groups for route guards and service-layer checks. Change these, not the call sites.
+SCHOOL_WIDE = (Role.ADMIN, Role.CEO, Role.HEADMASTER)  # unscoped readers
+MANAGERS = (Role.ADMIN, Role.HEADMASTER)  # academic/settings/finance writers
 
 
 def has_permission(role: Role, permission: str) -> bool:

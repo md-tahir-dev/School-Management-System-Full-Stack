@@ -17,6 +17,11 @@ export class ApiError extends Error {
   }
 }
 
+/** Toast text for a failed mutation: the first field error if any, else the API message, else `fallback`. */
+export function errorText(e: unknown, fallback: string) {
+  return e instanceof ApiError ? Object.values(e.fields ?? {})[0] ?? e.message : fallback;
+}
+
 // The access token lives in memory only (never localStorage). The httpOnly refresh cookie
 // restores it after a page reload.
 let accessToken: string | null = null;
@@ -97,14 +102,16 @@ export async function api<T>(path: string, opts: RequestOptions = {}): Promise<T
 
   const send = () => {
     const headers: Record<string, string> = {};
-    if (body !== undefined) headers["Content-Type"] = "application/json";
+    // FormData (file uploads): the browser sets the multipart boundary itself.
+    const isForm = body instanceof FormData;
+    if (body !== undefined && !isForm) headers["Content-Type"] = "application/json";
     if (auth && accessToken) headers["Authorization"] = `Bearer ${accessToken}`;
     return fetch(url, {
       method,
       headers,
       credentials: "include",
       signal,
-      body: body !== undefined ? JSON.stringify(body) : undefined,
+      body: isForm ? body : body !== undefined ? JSON.stringify(body) : undefined,
     });
   };
 
@@ -176,6 +183,13 @@ export function saveBlob(blob: Blob, filename: string) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(href), 10_000);
+}
+
+/** Downloads a login-only upload (diary attachment, homework, material) by its stored `/api/v1/uploads/...`
+ * URL. A plain <a href> can't send the in-memory bearer token. */
+export async function downloadFile(url: string) {
+  const path = url.replace(/^\/api\/v1/, "");
+  saveBlob(await apiBlob(path), path.split("/").pop() || "file");
 }
 
 export function openBlob(blob: Blob) {

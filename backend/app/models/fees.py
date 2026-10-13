@@ -65,6 +65,12 @@ class Payment(IdMixin, TimestampMixin, Base):
     method: Mapped[PaymentMethod] = mapped_column(enum_col(PaymentMethod))
     paid_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
     received_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    note: Mapped[str | None] = mapped_column(String(255))
+    voided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    voided_by: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
+    void_reason: Mapped[str | None] = mapped_column(String(255))
+
+    __table_args__ = (Index("ix_payments_paid_at", "paid_at"),)
 
 
 class PaymentAllocation(IdMixin, Base):

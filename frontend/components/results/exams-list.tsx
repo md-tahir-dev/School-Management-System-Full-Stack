@@ -17,6 +17,7 @@ import { Select } from "@/components/ui/select";
 import { SubjectsEditor } from "@/components/results/subjects-editor";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { isManager } from "@/lib/role-config";
 import { dateLabel } from "@/lib/format";
 import { useAcademicYears, useClasses, useSettings } from "@/lib/queries";
 import type { Exam, ExamType, Page } from "@/lib/types";
@@ -58,7 +59,7 @@ function CreateExam({ open, onOpenChange, onCreated }: { open: boolean; onOpenCh
 export function ExamsList() {
   const { user } = useAuth();
   const qc = useQueryClient();
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isManager(user?.role);
   const classes = useClasses();
   const years = useAcademicYears();
   const [page, setPage] = useState(1);
