@@ -70,8 +70,8 @@ def sniff_document_type(data: bytes) -> str | None:
 
 
 class StorageBackend(Protocol):
-    async def save_image(self, upload: UploadFile, folder: str = "photos") -> str:
-        """Validates and stores an image; returns the public URL."""
+    async def save_image(self, upload: UploadFile, folder: str = "photos", max_bytes: int | None = None) -> str:
+        """Validates and stores an image (max_bytes defaults to the configured limit); returns the public URL."""
         ...
 
     async def save_document(self, upload: UploadFile, folder: str = "documents") -> str:
@@ -111,8 +111,8 @@ class LocalStorage:
         await asyncio.to_thread(_write)
         return f"{self.url_prefix}/{folder}/{name}"
 
-    async def save_image(self, upload: UploadFile, folder: str = "photos") -> str:
-        data = await self._read(upload, self.max_bytes)
+    async def save_image(self, upload: UploadFile, folder: str = "photos", max_bytes: int | None = None) -> str:
+        data = await self._read(upload, max_bytes or self.max_bytes)
         kind = sniff_image_type(data)
         if kind is None:
             raise AppError(

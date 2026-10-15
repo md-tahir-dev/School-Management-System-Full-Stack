@@ -10,6 +10,8 @@ class SchoolSettingsOut(BaseModel):
     name: str
     slogan: str | None
     logo_url: str | None
+    favicon_url: str | None
+    login_image_url: str | None
     address: str | None
     phone: str | None
     email: str | None
@@ -62,5 +64,7 @@ class PublicConfig(BaseModel):
     school_name: str
     slogan: str | None
     logo_url: str | None
+    favicon_url: str | None
+    login_image_url: str | None
     app_env: str
     demo_accounts: list[dict[str, str]] | None

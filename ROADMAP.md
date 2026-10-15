@@ -8,7 +8,7 @@ _Updated 2026-10-08. All six phases now have a backend and a UI; nothing below i
 |---|---|---|
 | Auth (login, refresh, lockout, change password) | ✅ | ✅ |
 | Users (create admin/CEO/headmaster, activate, reset password) | ✅ | ✅ |
-| Settings: school profile + logo (branding) | ✅ | ✅ |
+| Settings: school profile + branding (logo, favicon, login image) | ✅ | ✅ |
 | Settings: years, classes, sections, subjects, fee structure, periods, class teachers | ✅ | ✅ |
 | Settings: attendance/result rules, holidays | ✅ | ✅ |
 | Students (register, profile, status, discount, ledger) | ✅ | ✅ |
@@ -38,7 +38,7 @@ _Updated 2026-10-08. All six phases now have a backend and a UI; nothing below i
 
 ## Roles
 
-White-label: one school per deployment, no multi-tenancy. Branding (name, tagline, logo) is edited in Settings > School profile.
+White-label: one school per deployment, no multi-tenancy. Branding (name, tagline, logo, favicon, login-page image) is edited in Settings > School profile.
 
 | Role | Reads | Writes |
 |---|---|---|

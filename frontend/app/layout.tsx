@@ -10,13 +10,13 @@ export const revalidate = 60;
 /** White-label: the tab title and favicon come from the school's settings, not the code. */
 export async function generateMetadata(): Promise<Metadata> {
   let name = "School";
-  let logo: string | null = null;
+  let icon: string | null = null;
   try {
     const res = await fetch(`${BACKEND_URL}/api/v1/public/config`, { next: { revalidate: 60 }, signal: AbortSignal.timeout(3000) });
     if (res.ok) {
-      const config = (await res.json()) as { school_name: string; logo_url: string | null };
+      const config = (await res.json()) as { school_name: string; logo_url: string | null; favicon_url?: string | null };
       name = config.school_name;
-      logo = config.logo_url;
+      icon = config.favicon_url ?? config.logo_url;
     }
   } catch {
     // API unreachable (e.g. during `next build`): keep the neutral fallback.
@@ -24,7 +24,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return {
     title: { default: name, template: `%s | ${name}` },
     description: "Students, teachers, fees, results and more in one place.",
-    icons: logo ? { icon: logo } : undefined,
+    icons: icon ? { icon, apple: icon } : undefined,
   };
 }
 

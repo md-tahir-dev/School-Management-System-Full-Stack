@@ -62,10 +62,25 @@ function LoginForm() {
   }
 
   const schoolName = config?.school_name ?? "";
+  const image = config?.login_image_url;
 
   return (
     <main className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,32rem)]">
-      {/* exercise-book panel */}
+      {image ? (
+        <section className="relative h-48 overflow-hidden bg-primary text-white sm:h-64 lg:h-auto lg:min-h-screen">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={image} alt="" className="absolute inset-0 h-full w-full object-cover" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-black/10" />
+          <div className="relative flex h-full flex-col justify-end gap-1 p-6 sm:p-10 lg:p-14">
+            <div className="mb-2 flex items-center gap-3">
+              <BrandMark logoUrl={config?.logo_url} className="h-10 w-10" />
+            </div>
+            <h1 className="break-words text-2xl font-extrabold leading-tight sm:text-3xl lg:text-5xl">{schoolName}</h1>
+            {config?.slogan ? <p className="max-w-md text-sm text-white/90 sm:text-base lg:text-lg">{config.slogan}</p> : null}
+          </div>
+        </section>
+      ) : (
+      /* exercise-book panel */
       <section className="ruled-paper relative flex flex-col justify-between bg-primary px-6 py-6 text-primary-foreground sm:px-14 sm:py-10 lg:min-h-screen lg:py-14 lg:pl-28">
         <div className="flex items-center gap-3">
           <BrandMark logoUrl={config?.logo_url} className="h-10 w-10" />
@@ -79,6 +94,7 @@ function LoginForm() {
           Attendance, results, fees and announcements, in one place for staff, students and families.
         </p>
       </section>
+      )}
 
       <section className="flex items-center justify-center bg-card px-6 py-12 sm:px-12">
         <div className="w-full max-w-sm">

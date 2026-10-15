@@ -281,3 +281,20 @@ async def test_default_page_size_is_ten(client, auth):
 
 
 _ = DEFAULT_PASSWORD
+
+
+async def test_branding_images_upload_show_publicly_and_clear(client, auth):
+    _, h = await auth(Role.HEADMASTER)
+    for kind in ("favicon", "login_image"):
+        resp = await client.post(
+            f"{API}/settings/branding/{kind}", headers=h, files={"file": ("x.png", JPEG, "image/png")}
+        )
+        assert resp.status_code == 200, resp.text
+        url = resp.json()[f"{kind}_url"]
+        assert url and url.startswith("/api/v1/uploads/logos/")
+        assert (await client.get(f"{API}/public/config")).json()[f"{kind}_url"] == url
+        assert (await client.get(url)).status_code == 200  # public, like the logo
+        cleared = await client.delete(f"{API}/settings/branding/{kind}", headers=h)
+        assert cleared.status_code == 200 and cleared.json()[f"{kind}_url"] is None
+    bad = await client.post(f"{API}/settings/branding/banner", headers=h, files={"file": ("x.png", JPEG, "image/png")})
+    assert bad.status_code == 422

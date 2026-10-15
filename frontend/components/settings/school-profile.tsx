@@ -1,7 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Upload } from "lucide-react";
+import { Trash2, Upload } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { BrandMark } from "@/components/brand-mark";
@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { ErrorState, ListSkeleton } from "@/components/ui/state-views";
 import { api, errorText } from "@/lib/api";
 import { useSettings } from "@/lib/queries";
+import type { BrandingKind } from "@/lib/types";
 
 const FIELDS = [
   { key: "name", label: "School name", max: 150 },
@@ -28,7 +29,6 @@ export function SchoolProfile() {
   const qc = useQueryClient();
   const s = useSettings();
   const [form, setForm] = useState<Record<Key, string>>({ name: "", slogan: "", phone: "", email: "", website: "", address: "" });
-  const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (s.data) setForm({ name: s.data.name, slogan: s.data.slogan ?? "", phone: s.data.phone ?? "", email: s.data.email ?? "", website: s.data.website ?? "", address: s.data.address ?? "" });
   }, [s.data]);
@@ -40,24 +40,16 @@ export function SchoolProfile() {
     onSuccess: () => { toast.success("School profile saved"); refresh(); },
     onError: (e) => toast.error(errorText(e, "Couldn't save")),
   });
-  const upload = useMutation({
-    mutationFn: (file: File) => { const fd = new FormData(); fd.append("file", file); return api("/settings/logo", { method: "POST", body: fd }); },
-    onSuccess: () => { toast.success("Logo updated"); refresh(); },
-    onError: (e) => toast.error(errorText(e, "Couldn't upload the logo")),
-  });
 
   if (s.isLoading) return <ListSkeleton rows={4} />;
   if (s.error) return <ErrorState error={s.error} onRetry={() => s.refetch()} />;
   return (
     <Card className="max-w-2xl space-y-5 p-5">
-      <div className="flex items-center gap-4">
-        <BrandMark logoUrl={s.data?.logo_url} className="h-16 w-16" />
-        <div className="space-y-1">
-          <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" aria-label="Logo file"
-            onChange={(e) => { const f = e.target.files?.[0]; if (f) upload.mutate(f); e.target.value = ""; }} />
-          <Button variant="outline" size="sm" loading={upload.isPending} onClick={() => fileRef.current?.click()}><Upload className="h-4 w-4" />Upload logo</Button>
-          <p className="text-xs text-muted-foreground">PNG, JPEG or WebP, up to 2 MB. Square works best.</p>
-        </div>
+      <div className="space-y-4">
+        <h3 className="text-sm font-semibold">Branding</h3>
+        <BrandingUploader kind="logo" label="Logo" hint="PNG, JPEG or WebP, up to 2 MB. Square works best." url={s.data?.logo_url} onDone={refresh} />
+        <BrandingUploader kind="favicon" label="Favicon" hint="Square PNG, at least 64×64, up to 2 MB. Shown in the browser tab." url={s.data?.favicon_url} onDone={refresh} />
+        <BrandingUploader kind="login_image" label="Login page image" hint="Wide photo, e.g. the school building. Up to 5 MB." url={s.data?.login_image_url} onDone={refresh} wide />
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         {FIELDS.map((f) => (
@@ -71,5 +63,40 @@ export function SchoolProfile() {
       </div>
       <Button onClick={() => save.mutate()} loading={save.isPending} disabled={form.name.trim().length < 2}>Save profile</Button>
     </Card>
+  );
+}
+
+function BrandingUploader({ kind, label, hint, url, onDone, wide }: { kind: BrandingKind; label: string; hint: string; url?: string | null; onDone: () => void; wide?: boolean }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const upload = useMutation({
+    mutationFn: (file: File) => { const fd = new FormData(); fd.append("file", file); return api(`/settings/branding/${kind}`, { method: "POST", body: fd }); },
+    onSuccess: () => { toast.success(`${label} updated`); onDone(); },
+    onError: (e) => toast.error(errorText(e, `Couldn't upload the ${label.toLowerCase()}`)),
+  });
+  const remove = useMutation({
+    mutationFn: () => api(`/settings/branding/${kind}`, { method: "DELETE" }),
+    onSuccess: () => { toast.success(`${label} removed`); onDone(); },
+    onError: (e) => toast.error(errorText(e, `Couldn't remove the ${label.toLowerCase()}`)),
+  });
+  const busy = upload.isPending || remove.isPending;
+  return (
+    <div className="flex flex-col gap-3 rounded-lg border border-border p-3 sm:flex-row sm:items-center">
+      <div className={`flex shrink-0 items-center justify-center overflow-hidden rounded-md bg-muted ${wide ? "h-24 w-full sm:w-44" : "h-16 w-16"}`}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {url ? <img src={url} alt={`${label} preview`} className={wide ? "h-full w-full object-cover" : "h-full w-full object-contain"} /> : <span className="px-2 text-center text-xs text-muted-foreground">Default</span>}
+      </div>
+      <div className="min-w-0 flex-1 space-y-2">
+        <div>
+          <p className="text-sm font-medium">{label}</p>
+          <p className="text-xs text-muted-foreground">{hint}</p>
+        </div>
+        <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp" className="sr-only" aria-label={`${label} file`}
+          onChange={(e) => { const f = e.target.files?.[0]; if (f) upload.mutate(f); e.target.value = ""; }} />
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="min-h-11" loading={upload.isPending} disabled={busy} onClick={() => fileRef.current?.click()}><Upload className="h-4 w-4" />{url ? "Replace" : "Upload"}</Button>
+          {url ? <Button variant="outline" size="sm" className="min-h-11" loading={remove.isPending} disabled={busy} onClick={() => remove.mutate()}><Trash2 className="h-4 w-4" />Remove</Button> : null}
+        </div>
+      </div>
+    </div>
   );
 }

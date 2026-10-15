@@ -6,8 +6,11 @@ type Schemas = components["schemas"];
 export type Role = Schemas["Role"];
 export type User = Schemas["UserOut"];
 export type TokenResponse = Schemas["TokenResponse"];
-export type SchoolSettings = Schemas["SchoolSettingsOut"];
-export type PublicConfig = Schemas["PublicConfig"];
+// favicon_url / login_image_url: remove the intersections once `npm run gen:api` is rerun against the new API.
+type Branding = { favicon_url?: string | null; login_image_url?: string | null };
+export type SchoolSettings = Schemas["SchoolSettingsOut"] & Branding;
+export type BrandingKind = "logo" | "favicon" | "login_image";
+export type PublicConfig = Schemas["PublicConfig"] & Branding;
 
 /** Matches the backend `Page[T]` envelope used by every list endpoint. */
 export interface Page<T> {

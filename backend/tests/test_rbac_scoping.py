@@ -20,6 +20,8 @@ MATRIX: list[tuple[str, str, set[Role]]] = [
     ("GET", "/settings", ALL),
     ("PUT", "/settings", MANAGERS),
     ("POST", "/settings/logo", MANAGERS),
+    ("POST", "/settings/branding/favicon", MANAGERS),
+    ("DELETE", "/settings/branding/login_image", MANAGERS),
     ("GET", "/academic-years", SCHOOL),
     ("POST", "/academic-years", MANAGERS),
     ("PUT", f"/academic-years/{U}", MANAGERS),

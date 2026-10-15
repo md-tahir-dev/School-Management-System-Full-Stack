@@ -11,7 +11,7 @@ backend/app/
   models/      SQLAlchemy 2 async; enums.py holds Role and status enums
   schemas/     Pydantic in/out models
   core/        config, security (Argon2, JWT), deps (auth guards), permissions, errors, ratelimit
-backend/alembic/versions/   one migration per feature slice (0001-0006)
+backend/alembic/versions/   one migration per feature slice (0001-0007)
 backend/scripts/seed.py     idempotent; APP_ENV=demo seeds full sample data via the real services
 frontend/
   app/(dashboard)/[role]/   one route tree for all roles; [...slug] = "coming in phase N" page
@@ -25,7 +25,7 @@ frontend/
 - **Authorization is two layers.** Route: `require_roles` / `require_permission` (`core/deps.py`, matrix in `core/permissions.py`). Rows: service layer (teacher → assigned classes, parent → linked children, student → self). Out-of-scope records return **404, never 403**. Any new role or endpoint must be added to `tests/test_rbac_scoping.py`.
 - **Roles live in four places:** `models/enums.py` (Role), `core/permissions.py`, `frontend/lib/role-config.ts`, `frontend/middleware.ts` (plus `lib/api-types.ts` via `npm run gen:api`). Change them together.
 - **Role checks use groups, not hand-listed roles.** Backend: `SCHOOL_WIDE` (admin, ceo, headmaster: unscoped readers) and `MANAGERS` (admin, headmaster: settings/academics/attendance/results/finance writers) in `core/permissions.py`. Students and teachers writes stay admin-only; creating admin/CEO/headmaster accounts is admin-only, and a headmaster may activate/deactivate/reset only teacher, student and parent logins (`services/users._get_manageable`). Frontend mirrors them with `isSchoolWide()` / `isManager()` in `lib/role-config.ts`.
-- **Branding is data.** School name, slogan, logo → `school_settings` row → `GET /public/config` (unauthenticated) → login page, sidebar, tab title/favicon (`app/layout.tsx` `generateMetadata`, revalidated every 60 s), result card, result PDF. Never hardcode a school name in UI.
+- **Branding is data.** School name, slogan, logo, favicon, login-page image (`POST/DELETE /settings/branding/{kind}`) → `school_settings` row → `GET /public/config` (unauthenticated) → login page, sidebar, tab title/favicon (`app/layout.tsx` `generateMetadata`, revalidated every 60 s), result card, result PDF. Never hardcode a school name in UI.
 - **Forms** use `components/forms.tsx` (`useApiForm`, `TextField`, `SelectField`): the API validates, and its `fields` errors (keyed like `guardian.father_cnic`) show next to the inputs. Use `errorText()` from `lib/api.ts` for toasts.
 - **Multi-row writes are one transaction** (student/teacher registration: counters, guardian, users, ledger, audit). Use `services/dbutil.flush_or_conflict` for unique-violation → 409.
 - **Counters** (`services/counters.py`, roll no `YYYY-NNNN`, `EMP-NNNN`) use `INSERT ... ON CONFLICT DO UPDATE RETURNING`; don't replace with SELECT-then-UPDATE.
