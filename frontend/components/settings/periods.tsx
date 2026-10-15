@@ -53,8 +53,8 @@ export function Periods() {
       {q.isLoading ? <ListSkeleton rows={4} /> : q.error ? <ErrorState error={q.error} onRetry={() => q.refetch()} /> : !rows.length ? <EmptyState title="No periods yet" hint="Add the bell schedule above." /> : (
         <ul className="divide-y divide-border rounded-lg border border-border bg-card">
           {rows.map((p) => (
-            <li key={p.id} className="flex items-center gap-3 px-4 py-2 text-sm">
-              <span className="flex-1 font-medium">{p.name}{p.is_break && <span className="ml-2 text-xs text-muted-foreground">(break)</span>}</span>
+            <li key={p.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2 text-sm">
+              <span className="min-w-0 flex-1 font-medium">{p.name}{p.is_break && <span className="ml-2 text-xs text-muted-foreground">(break)</span>}</span>
               <span className="tabular-nums text-muted-foreground">{hm(p.start_time)} - {hm(p.end_time)}</span>
               <Button variant="ghost" size="icon" aria-label={`Edit ${p.name}`} onClick={() => { setEditId(p.id); setForm({ name: p.name, start_time: hm(p.start_time), end_time: hm(p.end_time), sort_order: String(p.sort_order), is_break: p.is_break }); }}><Pencil className="h-4 w-4" /></Button>
               <Button variant="ghost" size="icon" aria-label={`Delete ${p.name}`} onClick={() => setToDelete(p)}><Trash2 className="h-4 w-4 text-danger" /></Button>

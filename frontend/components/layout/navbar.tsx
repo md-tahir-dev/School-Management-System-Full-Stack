@@ -38,7 +38,7 @@ export function Navbar({ user, title, onOpenMenu, onSignOut }: NavbarProps) {
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="flex items-center gap-2.5 rounded-md py-1 pl-1 pr-2 hover:bg-muted"
+            className="flex min-h-10 items-center gap-2.5 rounded-md py-1 pl-1 pr-2 hover:bg-muted"
             aria-label="Account menu"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">

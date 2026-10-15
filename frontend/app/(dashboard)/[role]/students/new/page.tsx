@@ -53,7 +53,7 @@ export default function NewStudentPage() {
       const creds: ShownCredential[] = [];
       if (parent) creds.push({ label: "Parent", ...parent });
       if (student) creds.push({ label: res.student.full_name, ...student });
-      const note = parent ? undefined : "The family already has a parent login; this child was added to it.";
+      const note = "They must change the password at first sign-in." + (parent ? "" : " The family already has a parent login; this child was added to it.");
       if (creds.length) setDone({ id: res.student.id, creds, note });
       else { toast.success(`${res.student.full_name} registered (roll no. ${res.student.roll_no})`); router.push(`/${user?.role}/students/${res.student.id}`); }
     },

@@ -391,4 +391,6 @@ async def test_headmaster_runs_exams_but_cannot_register_students(client, auth):
     assert (await client.get(f"{API}/ceo/dashboard", headers=head_h)).status_code == 200
     assert (await client.post(f"{API}/students", headers=head_h, json={})).status_code == 403
     assert (await client.post(f"{API}/teachers", headers=head_h, json={})).status_code == 403
-    assert (await client.put(f"{API}/users/{other.id}/deactivate", headers=head_h)).status_code == 403
+    users_body = {"username": f"x{other.username}", "full_name": "X", "role": "admin"}
+    assert (await client.post(f"{API}/users", headers=head_h, json=users_body)).status_code == 403
+    assert (await client.put(f"{API}/users/{other.id}/deactivate", headers=head_h)).status_code == 200  # a teacher

@@ -66,13 +66,13 @@ function LoginForm() {
   return (
     <main className="grid min-h-screen lg:grid-cols-[minmax(0,1fr)_minmax(0,32rem)]">
       {/* exercise-book panel */}
-      <section className="ruled-paper relative flex flex-col justify-between bg-primary px-8 py-10 text-primary-foreground sm:px-14 lg:min-h-screen lg:py-14 lg:pl-28">
+      <section className="ruled-paper relative flex flex-col justify-between bg-primary px-6 py-6 text-primary-foreground sm:px-14 sm:py-10 lg:min-h-screen lg:py-14 lg:pl-28">
         <div className="flex items-center gap-3">
           <BrandMark logoUrl={config?.logo_url} className="h-10 w-10" />
           <span className="font-semibold">School portal</span>
         </div>
-        <div className="py-10 lg:py-0">
-          <h1 className="min-h-[1.15em] max-w-xl text-4xl font-extrabold leading-[1.15] sm:text-5xl">{schoolName}</h1>
+        <div className="py-8 lg:py-0">
+          <h1 className="min-h-[1.15em] max-w-xl break-words text-3xl sm:text-4xl font-extrabold leading-[1.15] sm:text-5xl">{schoolName}</h1>
           {config?.slogan ? <p className="mt-4 max-w-md text-lg text-blue-100">{config.slogan}</p> : null}
         </div>
         <p className="hidden max-w-sm text-sm text-blue-100/90 lg:block">

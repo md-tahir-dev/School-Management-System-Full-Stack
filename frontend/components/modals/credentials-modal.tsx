@@ -15,7 +15,7 @@ export interface ShownCredential {
 export function CredentialsModal({ credentials, note, onDone }: { credentials: ShownCredential[]; note?: string; onDone: () => void }) {
   const text = credentials.map((c) => `${c.label}: ${c.username} / ${c.temp_password}`).join("\n");
   return (
-    <Modal open onOpenChange={(o) => !o && onDone()} title="Login details" description="Write these down or copy them now. They won't be shown again; users must change the password at first sign-in."
+    <Modal open onOpenChange={(o) => !o && onDone()} title="Login details" description="Write these down or copy them now. They won't be shown again."
       footer={<>
         <Button variant="outline" onClick={() => navigator.clipboard.writeText(text).then(() => toast.success("Copied"), () => toast.error("Couldn't copy"))}><Copy className="h-4 w-4" />Copy all</Button>
         <Button onClick={onDone}>Done</Button>

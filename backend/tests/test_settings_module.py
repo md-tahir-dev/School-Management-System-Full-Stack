@@ -232,9 +232,9 @@ async def test_admin_cannot_deactivate_own_account(client, auth):
 
 
 async def test_last_active_admin_cannot_be_deactivated(make_user):
-    """Rule enforced in the service, independent of who asks (here: a non-admin actor)."""
+    """Rule enforced in the service, even for a request from another (already deactivated) admin."""
     sole, _ = await make_user(Role.ADMIN)
-    actor, _ = await make_user(Role.CEO)
+    actor, _ = await make_user(Role.ADMIN)
     async with SessionLocal() as db:
         await db.execute(update(User).where(User.role == Role.ADMIN, User.id != sole.id).values(is_active=False))
         await db.commit()

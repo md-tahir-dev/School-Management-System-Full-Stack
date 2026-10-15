@@ -7,7 +7,7 @@ _Updated 2026-10-08. All six phases now have a backend and a UI; nothing below i
 | Module | Backend | Frontend |
 |---|---|---|
 | Auth (login, refresh, lockout, change password) | ✅ | ✅ |
-| Users (list, activate, reset password) | ✅ | ✅ |
+| Users (create admin/CEO/headmaster, activate, reset password) | ✅ | ✅ |
 | Settings: school profile + logo (branding) | ✅ | ✅ |
 | Settings: years, classes, sections, subjects, fee structure, periods, class teachers | ✅ | ✅ |
 | Settings: attendance/result rules, holidays | ✅ | ✅ |
@@ -42,8 +42,8 @@ White-label: one school per deployment, no multi-tenancy. Branding (name, taglin
 
 | Role | Reads | Writes |
 |---|---|---|
-| `admin` | everything | everything |
-| `headmaster` | everything | settings, academic structure, timetable, holidays, attendance, exams/results, fees, payroll, announcements, events |
+| `admin` | everything | everything, incl. creating admin/CEO/headmaster accounts |
+| `headmaster` | everything | settings, academic structure, timetable, holidays, attendance, exams/results, fees, payroll, announcements, events, teacher/student/parent logins (activate, reset password) |
 | `ceo` | everything (published results, non-draft tests) | nothing |
 | `teacher` | assigned classes/sections (+ class-teacher sections) | attendance, marks, diary, materials, online tests, class announcements for what they teach |
 | `student` | own records, own section's timetable/diary/materials/tests | homework submissions, test attempts |

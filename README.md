@@ -33,7 +33,7 @@ Outside demo mode the seed creates one admin from `FIRST_ADMIN_USERNAME` / `FIRS
 
 ```bash
 # backend: needs an empty database sms_test; schema is built from the real migrations
-TEST_DATABASE_URL=postgresql+asyncpg://sms:sms@localhost:5432/sms_test pytest -q   # 295 tests
+TEST_DATABASE_URL=postgresql+asyncpg://sms:sms@localhost:5432/sms_test pytest -q   # 298 tests
 ruff check . && ruff format --check .
 
 cd frontend && npm run lint && npm run typecheck && npm run build

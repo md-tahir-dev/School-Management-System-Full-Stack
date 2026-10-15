@@ -31,10 +31,11 @@ ROLE_PERMISSIONS: dict[Role, frozenset[str]] = {
     Role.ADMIN: _all(("read", "write")),
     # Read-only everywhere.
     Role.CEO: _all(("read",)),
-    # Academic head: reads everything, runs academics/finance/settings; no student/teacher/user writes.
+    # Academic head: reads everything, runs academics/finance/settings; no student/teacher writes.
+    # users:write = activate/deactivate/reset teacher, student and parent logins only (services/users.py).
     Role.HEADMASTER: _all(("read",))
     | frozenset(
-        f"{m}:write" for m in ("settings", "attendance", "results", "tests", "fees", "salary", "reports")
+        f"{m}:write" for m in ("settings", "attendance", "results", "tests", "fees", "salary", "reports", "users")
     ),
     # Only assigned classes/students (scoped in the service layer).
     Role.TEACHER: frozenset(

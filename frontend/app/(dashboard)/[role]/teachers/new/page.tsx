@@ -53,6 +53,7 @@ export default function NewTeacherPage() {
       </form>
       {created && (
         <CredentialsModal credentials={[{ label: created.teacher.full_name, ...created.credentials.teacher }]}
+          note="They must change the password at first sign-in."
           onDone={() => router.push(`/${user?.role}/teachers/${created.teacher.id}`)} />
       )}
     </>

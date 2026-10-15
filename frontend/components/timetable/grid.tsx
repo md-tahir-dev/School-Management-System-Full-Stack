@@ -29,7 +29,7 @@ export function TimetableGrid({ data, cell, onCellClick }: { data: Timetable; ce
       <table className="w-full min-w-[640px] border-collapse text-sm">
         <thead>
           <tr className="border-b border-border">
-            <th scope="col" className="p-2 text-left font-medium text-muted-foreground">Period</th>
+            <th scope="col" className="sticky left-0 z-10 bg-card p-2 text-left font-medium text-muted-foreground">Period</th>
             {DAYS.slice(0, days).map((d, i) => (
               <th key={d} scope="col" className={cn("p-2 text-left font-medium", i + 1 === today && "bg-primary/10 text-primary")}>{d}</th>
             ))}
@@ -38,7 +38,7 @@ export function TimetableGrid({ data, cell, onCellClick }: { data: Timetable; ce
         <tbody>
           {periods.map((p) => (
             <tr key={p.id} className="border-b border-border last:border-0">
-              <th scope="row" className="whitespace-nowrap p-2 text-left font-medium">
+              <th scope="row" className="sticky left-0 z-10 whitespace-nowrap bg-card p-2 text-left font-medium">
                 {p.name}<div className="text-xs font-normal tabular-nums text-muted-foreground">{hm(p.start_time)} - {hm(p.end_time)}</div>
               </th>
               {p.is_break ? (
