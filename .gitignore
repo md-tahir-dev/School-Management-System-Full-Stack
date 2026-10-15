@@ -9,3 +9,4 @@ __pycache__/
 .venv/
 backend/uploads/
 .playwright-mcp/
+.env.vps
