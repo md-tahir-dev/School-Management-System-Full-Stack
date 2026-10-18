@@ -12,6 +12,7 @@ import { Tabs } from "@/components/ui/tabs";
 import { EmptyState, ErrorState } from "@/components/ui/state-views";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { isManager } from "@/lib/role-config";
 import { useMyTeacher, useSections } from "@/lib/queries";
 import type { Exam, ExamSubject, Page } from "@/lib/types";
 
@@ -19,7 +20,7 @@ import type { Exam, ExamSubject, Page } from "@/lib/types";
 export function MarksEntry({ fixedExam, embedded }: { fixedExam?: Exam; embedded?: boolean }) {
   const { user } = useAuth();
   const isTeacher = user?.role === "teacher";
-  const isAdmin = user?.role === "admin";
+  const isAdmin = isManager(user?.role);
   const me = useMyTeacher();
   const exams = useQuery({
     queryKey: ["exams", "entry-picker"],

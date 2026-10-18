@@ -18,8 +18,10 @@ async def new_exam(client, admin_h, school, name=None):
     resp = await client.post(
         f"{API}/exams",
         json={
-            "name": name or f"Mid-{uuid.uuid4().hex[:6]}", "type": "Mid Term",
-            "academic_year_id": str(school.year.id), "class_id": str(school.klass.id),
+            "name": name or f"Mid-{uuid.uuid4().hex[:6]}",
+            "type": "Mid Term",
+            "academic_year_id": str(school.year.id),
+            "class_id": str(school.klass.id),
         },
         headers=admin_h,
     )
@@ -37,8 +39,10 @@ async def enter(client, h, exam_id, school, subject, marks: dict, absent=(), rea
     if reason:
         body["reason"] = reason
     resp = await client.put(
-        f"{API}/exams/{exam_id}/marks", params={"subject_id": str(subject.id), "section_id": str(school.sec_a.id)},
-        json=body, headers=h,
+        f"{API}/exams/{exam_id}/marks",
+        params={"subject_id": str(subject.id), "section_id": str(school.sec_a.id)},
+        json=body,
+        headers=h,
     )
     assert resp.status_code == expect, resp.text
     return resp
@@ -67,7 +71,12 @@ async def test_create_exam_copies_class_subjects_and_duplicate_is_409_without_br
     subs = (await client.get(f"{API}/exams/{exam['id']}/subjects", headers=admin_h)).json()
     assert len(subs) == 2 and all(s["total_marks"] == "100.00" for s in subs)
 
-    body = {"name": "Dup", "type": "Mid Term", "academic_year_id": str(school.year.id), "class_id": str(school.klass.id)}
+    body = {
+        "name": "Dup",
+        "type": "Mid Term",
+        "academic_year_id": str(school.year.id),
+        "class_id": str(school.klass.id),
+    }
     dup = await client.post(f"{API}/exams", json=body, headers=admin_h)
     assert dup.status_code == 409 and dup.json()["code"] == "EXAM_EXISTS"
     # Regression for the MissingGreenlet bug: requests after a duplicate error must keep working.
@@ -92,7 +101,8 @@ async def test_obtained_above_total_rejected_and_absent_forces_zero(client, auth
     sheet = (
         await client.get(
             f"{API}/exams/{exam['id']}/marks-sheet",
-            params={"subject_id": str(school.math.id), "section_id": str(school.sec_a.id)}, headers=admin_h,
+            params={"subject_id": str(school.math.id), "section_id": str(school.sec_a.id)},
+            headers=admin_h,
         )
     ).json()
     row = sheet["rows"][0]
@@ -137,7 +147,9 @@ async def test_snapshot_survives_exam_subject_edit(client, auth):
         {"subject_id": str(school.math.id), "total_marks": "50", "passing_marks": "20"},
         {"subject_id": str(school.english.id), "total_marks": "100", "passing_marks": "40"},
     ]
-    assert (await client.put(f"{API}/exams/{exam['id']}/subjects", json=new_subjects, headers=admin_h)).status_code == 200
+    assert (
+        await client.put(f"{API}/exams/{exam['id']}/subjects", json=new_subjects, headers=admin_h)
+    ).status_code == 200
     async with SessionLocal() as db:
         result = await db.scalar(select(Result).where(Result.student_id == sid))
         from app.models import ResultItem
@@ -175,7 +187,9 @@ async def test_teacher_scope_and_publish_lock_and_admin_reason_audit(client, aut
     client.cookies.clear()
     teacher_h = {"Authorization": f"Bearer {resp.json()['access_token']}"}
 
-    await enter(client, teacher_h, exam["id"], school, school.english, {sid: 70}, expect=403)  # unassigned subject
+    await enter(
+        client, teacher_h, exam["id"], school, school.english, {sid: 70}, expect=404
+    )  # unassigned subject: out of scope is 404
     await enter(client, teacher_h, exam["id"], school, school.math, {sid: 70})
     await enter(client, admin_h, exam["id"], school, school.english, {sid: 70})
 
@@ -193,6 +207,92 @@ async def test_teacher_scope_and_publish_lock_and_admin_reason_audit(client, aut
     assert (
         await client.post(f"{API}/exams/{exam['id']}/unpublish", json={"reason": "Wrong marks"}, headers=admin_h)
     ).status_code == 200
+
+
+async def _teacher_sec_a_math(client, admin_h):
+    """School with one student in section A and one in B (marks entered by admin for both subjects),
+    and a teacher assigned Math / section A only."""
+    school = await make_school()
+    a = (await create_student(school)).student
+    b = (await create_student(school, section_id=str(school.sec_b.id))).student
+    exam = await new_exam(client, admin_h, school)
+    for subject in (school.math, school.english):
+        for s, sec in ((a, school.sec_a), (b, school.sec_b)):
+            resp = await client.put(
+                f"{API}/exams/{exam['id']}/marks",
+                params={"subject_id": str(subject.id), "section_id": str(sec.id)},
+                json={"entries": [{"student_id": str(s.id), "subject_id": str(subject.id), "obtained_marks": "60"}]},
+                headers=admin_h,
+            )
+            assert resp.status_code == 200, resp.text
+    _, tname = await create_teacher(school)
+    resp = await login(client, tname, DEFAULT_PASSWORD)
+    client.cookies.clear()
+    return school, a, b, exam, {"Authorization": f"Bearer {resp.json()['access_token']}"}
+
+
+async def test_teacher_cannot_write_marks_for_other_section_by_omitting_section_id(client, auth):
+    _, admin_h = await auth(Role.ADMIN)
+    school, a, b, exam, teacher_h = await _teacher_sec_a_math(client, admin_h)
+
+    def entry(s, mark):
+        return {"student_id": str(s.id), "subject_id": str(school.math.id), "obtained_marks": str(mark)}
+
+    url = f"{API}/exams/{exam['id']}/marks"
+    resp = await client.put(
+        url, params={"subject_id": str(school.math.id)}, json={"entries": [entry(b, 5)]}, headers=teacher_h
+    )
+    assert resp.status_code == 404, resp.text
+    resp = await client.put(
+        f"{API}/exams/{exam['id']}/students/{b.id}/entry", json={"subjects": [entry(b, 5)]}, headers=teacher_h
+    )
+    assert resp.status_code == 404, resp.text
+    # the sheet without a section only lists the teacher's own section
+    sheet = await client.get(
+        f"{API}/exams/{exam['id']}/marks-sheet", params={"subject_id": str(school.math.id)}, headers=teacher_h
+    )
+    assert sheet.status_code == 200 and {r["student_id"] for r in sheet.json()["rows"]} == {str(a.id)}
+    # own-section student still works without a section_id
+    resp = await client.put(
+        url, params={"subject_id": str(school.math.id)}, json={"entries": [entry(a, 75)]}, headers=teacher_h
+    )
+    assert resp.status_code == 200, resp.text
+
+    rows = await results_of(client, admin_h, exam["id"])
+    assert rows[str(b.id)]["total_obtained"] == "120.00"  # untouched
+    assert rows[str(a.id)]["total_obtained"] == "135.00"
+
+
+async def test_teacher_reads_only_results_in_assigned_sections(client, auth):
+    _, admin_h = await auth(Role.ADMIN)
+    school, a, b, exam, teacher_h = await _teacher_sec_a_math(client, admin_h)
+    async with SessionLocal() as db:
+        rid = {s.id: (await db.scalar(select(Result).where(Result.student_id == s.id))).id for s in (a, b)}
+
+    assert (await client.get(f"{API}/results/{rid[a.id]}", headers=teacher_h)).status_code == 200
+    assert (await client.get(f"{API}/results/{rid[b.id]}", headers=teacher_h)).status_code == 404
+    assert (await client.get(f"{API}/results/{rid[b.id]}/pdf", headers=teacher_h)).status_code == 404
+
+    assert set(await results_of(client, teacher_h, exam["id"])) == {str(a.id)}
+    resp = await client.get(
+        f"{API}/exams/{exam['id']}/results", params={"section_id": str(school.sec_b.id)}, headers=teacher_h
+    )
+    assert resp.status_code == 404
+    csv = await client.get(f"{API}/exams/{exam['id']}/results/export", headers=teacher_h)
+    assert csv.status_code == 200 and a.roll_no in csv.text and b.roll_no not in csv.text
+
+    an = (await client.get(f"{API}/exams/{exam['id']}/analytics", headers=teacher_h)).json()
+    assert an["complete_count"] == 1 and an["total_students"] == 1
+    assert [t["student_id"] for t in an["top_students"]] == [str(a.id)]
+
+    # admin still sees everything
+    assert set(await results_of(client, admin_h, exam["id"])) == {str(a.id), str(b.id)}
+    assert (await client.get(f"{API}/exams/{exam['id']}/analytics", headers=admin_h)).json()["complete_count"] == 2
+
+    # a teacher of another class gets 404 on this exam's results and analytics
+    _, _, _, _, other_h = await _teacher_sec_a_math(client, admin_h)
+    assert (await client.get(f"{API}/exams/{exam['id']}/results", headers=other_h)).status_code == 404
+    assert (await client.get(f"{API}/exams/{exam['id']}/analytics", headers=other_h)).status_code == 404
 
 
 async def test_unpublished_hidden_from_student_parent_ceo_visible_to_admin_teacher(client, auth):
@@ -214,6 +314,10 @@ async def test_unpublished_hidden_from_student_parent_ceo_visible_to_admin_teach
     assert (await client.get(f"{API}/results/{rid}", headers=parent_h)).status_code == 404
     assert (await client.get(f"{API}/results/{rid}", headers=ceo_h)).status_code == 404
     assert (await client.get(f"{API}/results/{rid}", headers=admin_h)).status_code == 200
+    assert (await client.get(f"{API}/exams/{exam['id']}/analytics", headers=ceo_h)).status_code == 404
+    for h, visible in ((ceo_h, False), (parent_h, False), (admin_h, True)):
+        ids = [e["id"] for e in (await client.get(f"{API}/exams?published=false", headers=h)).json()["items"]]
+        assert (exam["id"] in ids) is visible
     dash = (await client.get(f"{API}/parent/children/{sid}/dashboard", headers=parent_h)).json()
     assert dash["latest_result"] is None
 
@@ -267,3 +371,26 @@ async def test_pdf_card_draft_watermark_bulk_pdf_and_csv(client, auth):
 
     csv = await client.get(f"{API}/exams/{exam['id']}/results/export", params={"format": "csv"}, headers=admin_h)
     assert csv.status_code == 200 and "Rank,Roll No" in csv.text
+
+
+async def test_headmaster_runs_exams_but_cannot_register_students(client, auth):
+    _, head_h = await auth(Role.HEADMASTER)
+    other, _ = await auth(Role.TEACHER)
+    school = await make_school()
+    sid = (await create_student(school)).student.id
+    exam = await new_exam(client, head_h, school)
+    for subject in (school.math, school.english):
+        await enter(client, head_h, exam["id"], school, subject, {sid: 70})
+    async with SessionLocal() as db:
+        rid = (await db.scalar(select(Result).where(Result.student_id == sid))).id
+    assert (await client.get(f"{API}/results/{rid}", headers=head_h)).status_code == 200  # sees drafts
+    assert (await client.post(f"{API}/exams/{exam['id']}/publish", headers=head_h)).status_code == 200
+    # post-publish edits need a reason, same as admin
+    await enter(client, head_h, exam["id"], school, school.math, {sid: 75}, expect=422)
+    await enter(client, head_h, exam["id"], school, school.math, {sid: 75}, reason="Re-check")
+    assert (await client.get(f"{API}/ceo/dashboard", headers=head_h)).status_code == 200
+    assert (await client.post(f"{API}/students", headers=head_h, json={})).status_code == 403
+    assert (await client.post(f"{API}/teachers", headers=head_h, json={})).status_code == 403
+    users_body = {"username": f"x{other.username}", "full_name": "X", "role": "admin"}
+    assert (await client.post(f"{API}/users", headers=head_h, json=users_body)).status_code == 403
+    assert (await client.put(f"{API}/users/{other.id}/deactivate", headers=head_h)).status_code == 200  # a teacher

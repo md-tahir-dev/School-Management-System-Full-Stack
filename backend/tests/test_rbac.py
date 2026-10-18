@@ -12,6 +12,7 @@ from app.models import Role, User
     [
         (Role.ADMIN, 200),
         (Role.CEO, 200),
+        (Role.HEADMASTER, 200),
         (Role.TEACHER, 403),
         (Role.STUDENT, 403),
         (Role.PARENT, 403),
@@ -30,9 +31,16 @@ async def test_users_list_requires_authentication(client):
 
 @pytest.mark.parametrize(
     ("role", "expected"),
-    [(Role.ADMIN, 200), (Role.CEO, 403), (Role.TEACHER, 403), (Role.STUDENT, 403), (Role.PARENT, 403)],
+    [
+        (Role.ADMIN, 200),
+        (Role.HEADMASTER, 200),
+        (Role.CEO, 403),
+        (Role.TEACHER, 403),
+        (Role.STUDENT, 403),
+        (Role.PARENT, 403),
+    ],
 )
-async def test_only_admin_can_change_settings(client, auth, role, expected):
+async def test_only_managers_can_change_settings(client, auth, role, expected):
     _, headers = await auth(role)
     resp = await client.put("/api/v1/settings", headers=headers, json={"slogan": f"set by {role.value}"})
     assert resp.status_code == expected

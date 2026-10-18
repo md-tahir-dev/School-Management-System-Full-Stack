@@ -18,6 +18,8 @@ async def public_config(db: DbSession):
         school_name=row.name,
         slogan=row.slogan,
         logo_url=row.logo_url,
+        favicon_url=row.favicon_url,
+        login_image_url=row.login_image_url,
         app_env=settings.app_env,
         demo_accounts=demo_accounts(),
     )

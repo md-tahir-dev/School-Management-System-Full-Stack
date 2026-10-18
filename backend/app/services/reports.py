@@ -10,7 +10,8 @@ from decimal import ROUND_HALF_UP, Decimal
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.errors import forbidden
+from app.core.errors import forbidden, not_found
+from app.core.permissions import SCHOOL_WIDE
 from app.models import Attendance, Guardian, Role, SchoolClass, Section, Student, StudentGuardian, User
 from app.models.enums import StudentStatus
 from app.schemas.attendance import (
@@ -32,12 +33,13 @@ def _pct(attended: int, denom: int) -> Decimal:
 
 
 async def _assert_class_section_scope(db: AsyncSession, user: User, class_id: uuid.UUID, section_id: uuid.UUID | None) -> None:
-    if user.role in (Role.ADMIN, Role.CEO):
+    if user.role in SCHOOL_WIDE:
         return
     if user.role == Role.TEACHER:
         teacher_id = await teacher_id_for(db, user)
         if teacher_id and section_id and await teacher_assigned_to_section(db, teacher_id, class_id, section_id):
             return
+        raise not_found("Class section")  # out of scope is 404, never 403
     raise forbidden()
 
 
@@ -95,7 +97,7 @@ def class_report_csv(report: ClassAttendanceReport) -> str:
 
 
 async def overview(db: AsyncSession, user: User, day: date) -> OverviewOut:
-    if user.role not in (Role.ADMIN, Role.CEO):
+    if user.role not in SCHOOL_WIDE:
         raise forbidden()
     sections = await db.execute(
         select(Section, SchoolClass.name)
@@ -143,7 +145,7 @@ async def overview(db: AsyncSession, user: User, day: date) -> OverviewOut:
 
 
 async def low_attendance(db: AsyncSession, user: User, threshold: int) -> LowAttendanceOut:
-    if user.role not in (Role.ADMIN, Role.CEO):
+    if user.role not in SCHOOL_WIDE:
         raise forbidden()
     students = list(
         (

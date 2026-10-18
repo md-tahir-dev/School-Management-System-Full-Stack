@@ -1,29 +1,32 @@
 "use client";
 
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { UserPlus } from "lucide-react";
 import Link from "next/link";
 import { useCallback, useState } from "react";
 import { PageHeader } from "@/components/page-header";
 import { StatusBadge } from "@/components/status-badge";
 import { DataTable, type Column } from "@/components/tables/data-table";
+import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { AccessDenied } from "@/components/ui/state-views";
 import { api } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import { isSchoolWide } from "@/lib/role-config";
 import { useClasses } from "@/lib/queries";
 import type { Page, StudentListItem } from "@/lib/types";
 import { initials } from "@/lib/utils";
 
 const PAGE_SIZE = 15;
 
-/** Read-only list (server-side search, filter and pagination). Opens the profile with Attendance and Results tabs. */
+/** Server-side search, filter and pagination. Admins can register; everyone else reads. */
 export default function StudentsPage() {
   const { user } = useAuth();
   const classes = useClasses();
   const [page, setPage] = useState(1);
   const [q, setQ] = useState("");
   const [classId, setClassId] = useState("");
-  const allowed = user?.role === "admin" || user?.role === "ceo" || user?.role === "teacher";
+  const allowed = isSchoolWide(user?.role) || user?.role === "teacher";
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({
     queryKey: ["students", { page, q, classId }],
@@ -47,7 +50,8 @@ export default function StudentsPage() {
   ];
   return (
     <>
-      <PageHeader title="Students" description="Open a student to see attendance and results." />
+      <PageHeader title="Students" description="Open a student to see their profile, attendance and results."
+        actions={user?.role === "admin" ? <Button asChild><Link href={`/${user.role}/students/new`}><UserPlus className="h-4 w-4" />Register student</Link></Button> : undefined} />
       <DataTable columns={columns} rows={data?.items} rowKey={(s) => s.id} total={data?.total ?? 0} page={page} pageSize={PAGE_SIZE} onPageChange={setPage}
         onSearchChange={onSearch} searchPlaceholder="Search by name or roll no."
         filters={<Select aria-label="Filter by class" value={classId} onChange={(e) => { setClassId(e.target.value); setPage(1); }}><option value="">All classes</option>{classes.data?.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</Select>}

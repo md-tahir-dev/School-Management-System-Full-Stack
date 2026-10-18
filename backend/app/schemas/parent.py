@@ -36,5 +36,5 @@ class ChildDashboard(BaseModel):
     latest_result: dict[str, Any] | None = None  # phase 3: {exam_name, percentage, grade, rank, total_students, is_pass}
     attendance_percentage: float | None = None  # phase 3, deprecated: use `attendance.month_percentage`
     attendance: dict[str, Any] | None = None  # phase 3: {month_percentage, present, absent, late, sick, below_threshold}
-    upcoming_tests: list[dict[str, Any]] | None = None  # phase 5
-    announcements: list[dict[str, Any]] | None = None  # phase 6
+    upcoming_tests: list[dict[str, Any]] | None = None  # {id, title, subject, start_at, end_at}
+    announcements: list[dict[str, Any]] | None = None  # {id, title, priority, created_at}

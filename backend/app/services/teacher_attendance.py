@@ -9,6 +9,7 @@ from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import forbidden, invalid, not_found
+from app.core.permissions import MANAGERS, SCHOOL_WIDE
 from app.models import Role, Teacher, TeacherAttendance, User
 from app.schemas.attendance import (
     BulkAttendanceResult,
@@ -54,7 +55,7 @@ async def get_roster(db: AsyncSession, actor: User, day: date | None) -> Teacher
 
 
 async def bulk_save(db: AsyncSession, actor: User, body: BulkTeacherAttendanceIn, ip: str | None) -> BulkAttendanceResult:
-    if actor.role != Role.ADMIN:
+    if actor.role not in MANAGERS:
         raise forbidden()
     school = await get_school_settings(db)
     await _assert_date_allowed(db, school, body.date)
@@ -95,13 +96,13 @@ async def bulk_save(db: AsyncSession, actor: User, body: BulkTeacherAttendanceIn
 
 
 async def teacher_summary(db: AsyncSession, user: User, teacher_id: uuid.UUID, month: str) -> TeacherAttendanceSummary:
+    if user.role not in (*SCHOOL_WIDE, Role.TEACHER):
+        raise forbidden()  # before the lookup, so the status doesn't reveal whether the id exists
     teacher = await db.get(Teacher, teacher_id)
     if teacher is None or teacher.is_deleted:
         raise not_found("Teacher")
     if user.role == Role.TEACHER and teacher.user_id != user.id:
         raise not_found("Teacher")
-    if user.role not in (Role.ADMIN, Role.CEO, Role.TEACHER):
-        raise forbidden()
 
     year, mon = (int(x) for x in month.split("-"))
     start = date(year, mon, 1)

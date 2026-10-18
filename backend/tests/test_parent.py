@@ -64,14 +64,18 @@ async def test_dashboard_shows_current_month_fee_and_documented_placeholders(cli
     fee = dash["fee_current_month"]
     assert fee["month"] == date.today().replace(day=1).isoformat()
     assert (fee["status"], fee["total_payable"], fee["paid_amount"]) == ("unpaid", "3000.00", "0.00")
-    # Phase 3 fills latest_result/attendance in; upcoming_tests/announcements stay null until phases 5/6.
     assert dash["latest_result"] is None  # no exams recorded for this student yet
     assert dash["attendance"] == {
-        "month_percentage": 0.0, "present": 0, "absent": 0, "late": 0, "sick": 0, "below_threshold": True,
+        "month_percentage": 0.0,
+        "present": 0,
+        "absent": 0,
+        "late": 0,
+        "sick": 0,
+        "below_threshold": True,
     }
     assert dash["attendance_percentage"] == 0.0
-    for key in ("upcoming_tests", "announcements"):
-        assert key in dash and dash[key] is None
+    assert dash["upcoming_tests"] == []  # no online tests for this new class
+    assert isinstance(dash["announcements"], list)  # school-wide ones from other tests may be visible
 
     async with SessionLocal() as db:
         await db.execute(
@@ -133,3 +137,12 @@ async def test_only_parents_use_parent_endpoints(client, auth):
     for role in (Role.ADMIN, Role.CEO, Role.TEACHER, Role.STUDENT):
         _, h = await auth(role)
         assert (await client.get(f"{API}/parent/children", headers=h)).status_code == 403, role
+
+
+async def test_student_dashboard_has_section_and_current_month_fee(client):
+    school = await make_school(fee="3000")
+    username = f"stu{uuid.uuid4().hex[:8]}"
+    await create_student(school, create_student_login=True, logins=LoginOverrides(student=(username, DEFAULT_PASSWORD)))
+    dash = (await client.get(f"{API}/student/dashboard", headers=await parent_headers(client, username))).json()
+    assert dash["child"]["section_name"] == "A"
+    assert (dash["fee_current_month"]["status"], dash["fee_current_month"]["total_payable"]) == ("unpaid", "3000.00")

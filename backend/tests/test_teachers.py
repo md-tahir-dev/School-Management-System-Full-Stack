@@ -281,6 +281,20 @@ async def test_students_and_parents_see_no_teacher_or_salary_data(client, auth):
         _, h = await auth(role)
         for path in ("/teachers", f"/teachers/{reg.teacher.id}", "/teachers/me"):
             assert (await client.get(API + path, headers=h)).status_code == 403, (role, path)
+        # attendance summary: same status for a real and a made-up teacher id (existence not leaked)
+        for tid in (reg.teacher.id, uuid.uuid4()):
+            resp = await client.get(f"{API}/teachers/{tid}/attendance/summary", params={"month": "2024-09"}, headers=h)
+            assert resp.status_code == 403, (role, tid)
+
+
+async def test_teacher_attendance_summary_of_another_teacher_is_404(client):
+    school = await make_school()
+    mine, my_user = await create_teacher(school)
+    theirs, _ = await create_teacher(school)
+    th = {"Authorization": f"Bearer {(await login(client, my_user, DEFAULT_PASSWORD)).json()['access_token']}"}
+    url = f"{API}/teachers/{{}}/attendance/summary"
+    assert (await client.get(url.format(mine.teacher.id), params={"month": "2024-09"}, headers=th)).status_code == 200
+    assert (await client.get(url.format(theirs.teacher.id), params={"month": "2024-09"}, headers=th)).status_code == 404
 
 
 async def test_teacher_me_without_profile_is_404(client, auth):

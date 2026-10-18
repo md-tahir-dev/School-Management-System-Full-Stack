@@ -4,6 +4,7 @@ from enum import StrEnum
 class Role(StrEnum):
     CEO = "ceo"
     ADMIN = "admin"
+    HEADMASTER = "headmaster"
     TEACHER = "teacher"
     STUDENT = "student"
     PARENT = "parent"
@@ -104,6 +105,14 @@ class Audience(StrEnum):
     TEACHERS = "teachers"
     STUDENTS = "students"
     PARENTS = "parents"
+
+
+class EventType(StrEnum):
+    EVENT = "event"
+    PTM = "ptm"
+    EXAM = "exam"
+    SPORTS = "sports"
+    OTHER = "other"
 
 
 class Priority(StrEnum):

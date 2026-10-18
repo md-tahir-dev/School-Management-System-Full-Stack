@@ -4,19 +4,25 @@ from app.api.v1 import (
     academic,
     attendance,
     auth,
+    content,
     dashboard,
     exams,
+    fees,
     health,
     holidays,
     meta,
+    notices,
+    online_tests,
     parent,
     public,
     reports,
     results,
+    salary,
     settings,
     students,
     teacher_attendance,
     teachers,
+    timetable,
     users,
 )
 
@@ -38,5 +44,14 @@ api_router.include_router(holidays.router)
 api_router.include_router(reports.router)
 api_router.include_router(exams.router)
 api_router.include_router(results.router)
+api_router.include_router(timetable.router)
+api_router.include_router(content.router)
+# Phase 4: fees and salary
+api_router.include_router(fees.router)
+api_router.include_router(salary.router)
+# Phase 6: announcements, calendar, notifications
+api_router.include_router(notices.router)
+# Phase 5: online tests
+api_router.include_router(online_tests.router)
 api_router.include_router(dashboard.router)
 # Phase 4: fees/payments/salary. Phase 5: tests, materials. Phase 6: announcements.

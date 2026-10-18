@@ -4,18 +4,20 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Query, Request, status
 from fastapi.responses import PlainTextResponse, Response
 
+from app.core.config import settings
 from app.core.deps import CurrentUser, DbSession, require_roles
+from app.core.permissions import MANAGERS
 from app.core.ratelimit import client_ip
 from app.models import Role, User
 from app.models.enums import ExamType, ResultStatus
 from app.schemas.common import Page, PageParams, page_params
 from app.schemas.results import (
+    ClassResultRow,
     ExamAnalyticsOut,
     ExamIn,
     ExamOut,
     ExamSubjectIn,
     ExamSubjectOut,
-    ClassResultRow,
     MarksBulkSaveIn,
     MarksSheetOut,
     StudentEntryOut,
@@ -27,14 +29,14 @@ from app.services import pdf as pdf_svc
 from app.services.settings import get_school_settings
 
 router = APIRouter(prefix="/exams", tags=["exams"])
-Admin = Annotated[User, Depends(require_roles(Role.ADMIN))]
-Staff = Annotated[User, Depends(require_roles(Role.ADMIN, Role.TEACHER))]
+Manager = Annotated[User, Depends(require_roles(*MANAGERS))]
+Staff = Annotated[User, Depends(require_roles(*MANAGERS, Role.TEACHER))]
 Params = Annotated[PageParams, Depends(page_params)]
 
 
 @router.get("", response_model=Page[ExamOut])
 async def list_exams(
-    _: CurrentUser,
+    user: CurrentUser,
     db: DbSession,
     params: Params,
     class_id: uuid.UUID | None = Query(None),
@@ -42,11 +44,13 @@ async def list_exams(
     type: ExamType | None = Query(None),
     published: bool | None = Query(None),
 ):
+    if user.role not in (*MANAGERS, Role.TEACHER):
+        published = True  # CEO, students and parents never see drafts
     return await svc.list_exams(db, params, class_id=class_id, academic_year_id=academic_year_id, type_=type, published=published)
 
 
 @router.post("", response_model=ExamOut, status_code=status.HTTP_201_CREATED)
-async def create_exam(body: ExamIn, request: Request, db: DbSession, admin: Admin):
+async def create_exam(body: ExamIn, request: Request, db: DbSession, admin: Manager):
     return await svc.create_exam(db, admin, body, ip=client_ip(request))
 
 
@@ -56,12 +60,12 @@ async def get_exam(exam_id: uuid.UUID, _: CurrentUser, db: DbSession):
 
 
 @router.put("/{exam_id}", response_model=ExamOut)
-async def update_exam(exam_id: uuid.UUID, body: ExamIn, request: Request, db: DbSession, admin: Admin):
+async def update_exam(exam_id: uuid.UUID, body: ExamIn, request: Request, db: DbSession, admin: Manager):
     return await svc.update_exam(db, admin, exam_id, body, ip=client_ip(request))
 
 
 @router.delete("/{exam_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_exam(exam_id: uuid.UUID, request: Request, db: DbSession, admin: Admin):
+async def delete_exam(exam_id: uuid.UUID, request: Request, db: DbSession, admin: Manager):
     await svc.delete_exam(db, admin, exam_id, ip=client_ip(request))
 
 
@@ -71,22 +75,24 @@ async def get_exam_subjects(exam_id: uuid.UUID, _: CurrentUser, db: DbSession):
 
 
 @router.put("/{exam_id}/subjects", response_model=list[ExamSubjectOut])
-async def replace_exam_subjects(exam_id: uuid.UUID, body: list[ExamSubjectIn], request: Request, db: DbSession, admin: Admin):
+async def replace_exam_subjects(
+    exam_id: uuid.UUID, body: list[ExamSubjectIn], request: Request, db: DbSession, admin: Manager
+):
     return await svc.replace_exam_subjects(db, admin, exam_id, body, ip=client_ip(request))
 
 
 @router.post("/{exam_id}/subjects/reset", response_model=list[ExamSubjectOut])
-async def reset_exam_subjects(exam_id: uuid.UUID, request: Request, db: DbSession, admin: Admin):
+async def reset_exam_subjects(exam_id: uuid.UUID, request: Request, db: DbSession, admin: Manager):
     return await svc.reset_exam_subjects_from_class(db, admin, exam_id, ip=client_ip(request))
 
 
 @router.post("/{exam_id}/publish", response_model=ExamOut)
-async def publish_exam(exam_id: uuid.UUID, request: Request, db: DbSession, admin: Admin):
+async def publish_exam(exam_id: uuid.UUID, request: Request, db: DbSession, admin: Manager):
     return await svc.publish_exam(db, admin, exam_id, ip=client_ip(request))
 
 
 @router.post("/{exam_id}/unpublish", response_model=ExamOut)
-async def unpublish_exam(exam_id: uuid.UUID, body: UnpublishIn, request: Request, db: DbSession, admin: Admin):
+async def unpublish_exam(exam_id: uuid.UUID, body: UnpublishIn, request: Request, db: DbSession, admin: Manager):
     return await svc.unpublish_exam(db, admin, exam_id, body.reason, ip=client_ip(request))
 
 
@@ -128,7 +134,9 @@ async def export_results(exam_id: uuid.UUID, user: CurrentUser, db: DbSession, s
 
 
 @router.get("/{exam_id}/results/pdf")
-async def bulk_result_pdf(exam_id: uuid.UUID, admin: Admin, db: DbSession, section_id: uuid.UUID | None = Query(None)):
+async def bulk_result_pdf(
+    exam_id: uuid.UUID, admin: Manager, db: DbSession, section_id: uuid.UUID | None = Query(None)
+):
     from sqlalchemy import select as _select
 
     from app.models import Result
@@ -144,7 +152,7 @@ async def bulk_result_pdf(exam_id: uuid.UUID, admin: Admin, db: DbSession, secti
         full = await svc.get_result(db, admin, result.id)
         html = pdf_svc.render_result_card_html(
             full, school_name=school.name, slogan=school.slogan, address=school.address, phone=school.phone,
-            logo_url=school.logo_url, photo_url=None, upload_dir="./uploads", show_rank=True,
+            logo_url=school.logo_url, photo_url=None, upload_dir=settings.upload_dir, show_rank=True,
         )
         pdfs.append(pdf_svc.html_to_pdf(html))
     merged = pdf_svc.merge_pdfs(pdfs) if pdfs else b""

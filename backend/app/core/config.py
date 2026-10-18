@@ -32,6 +32,7 @@ class Settings(BaseSettings):
     upload_dir: str = "./uploads"
     upload_url_prefix: str = "/api/v1/uploads"
     max_upload_bytes: int = 2 * 1024 * 1024
+    max_document_bytes: int = 10 * 1024 * 1024  # study material, diary attachments, homework
 
     # --- web ---
     cors_origins: str = "http://localhost:3000"

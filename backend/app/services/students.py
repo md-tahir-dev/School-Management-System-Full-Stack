@@ -40,10 +40,12 @@ from app.schemas.students import (
 )
 from app.services.audit import log_action
 from app.services.counters import next_roll_no
-from app.services.fees import generate_fee_ledger, recalculate_unpaid_ledger
+from app.services.fees import generate_fee_ledger, recalculate_unpaid_ledger, sync_admission_months
+from app.services.payments import apply_due_fines, reprice_unpaid_months, school_today
 from app.services.scoping import get_student_in_scope, student_scope_clause
 from app.services.settings import get_school_settings
 from app.services.storage import StorageBackend
+from app.services.users import revoke_sessions
 from app.utils.money import money
 from app.utils.pagination import like_pattern, paginate
 
@@ -242,7 +244,7 @@ async def _register(
 
     db.add(StudentFeeSetting(student_id=student.id, discount_percent=payload.discount_percent, transport_fee=0))
 
-    # 6. fee ledger: 12 monthly rows
+    # 6. fee ledger: one row per month from the admission month to the end of the academic year
     _, warnings = await generate_fee_ledger(
         db, student, year, discount_percent=payload.discount_percent, fee_due_day=school.fee_due_day
     )
@@ -451,6 +453,17 @@ async def update_student(
     diff = _diff(student, changes)
     for k, v in changes.items():
         setattr(student, k, v)
+    if "class_id" in diff:
+        diff["repriced_months"] = await reprice_unpaid_months(db, student)
+    if "admission_date" in diff:
+        percent = await db.scalar(
+            select(StudentFeeSetting.discount_percent).where(StudentFeeSetting.student_id == student.id)
+        )
+        school = await get_school_settings(db)
+        removed, added = await sync_admission_months(
+            db, student, discount_percent=percent or Decimal(0), fee_due_day=school.fee_due_day
+        )
+        diff["ledger_months"] = {"removed": removed, "added": added}
 
     if body.guardian is not None:
         g_changes = body.guardian.model_dump(exclude_unset=True)
@@ -466,6 +479,50 @@ async def update_student(
     return student
 
 
+async def _set_login(db: AsyncSession, user_id: uuid.UUID | None, active: bool) -> str | None:
+    user = await db.get(User, user_id) if user_id else None
+    if user is None or user.is_active == active:
+        return None
+    user.is_active = active
+    if not active:
+        await revoke_sessions(db, user.id)
+    return user.username
+
+
+async def _sync_logins(db: AsyncSession, student: Student, *, active: bool) -> dict:
+    """Called when a student enters or leaves ACTIVE (or is deleted). Their own login follows; a parent login
+    is disabled only once none of the parent's children is active, and re-enabled when one becomes active.
+    Returns the usernames changed, for the audit entry."""
+    changed = {"student": await _set_login(db, student.user_id, active), "parents": []}
+    parent_ids = (
+        await db.scalars(
+            select(Guardian.user_id)
+            .join(StudentGuardian, StudentGuardian.guardian_id == Guardian.id)
+            .where(StudentGuardian.student_id == student.id, Guardian.user_id.is_not(None))
+        )
+    ).all()
+    for parent_id in parent_ids:
+        if not active:
+            # lock the parent so two siblings deactivated at once can't each still see the other as active
+            await db.execute(select(User.id).where(User.id == parent_id).with_for_update())
+            active_child = await db.scalar(
+                select(Student.id)
+                .join(StudentGuardian, StudentGuardian.student_id == Student.id)
+                .join(Guardian, Guardian.id == StudentGuardian.guardian_id)
+                .where(
+                    Guardian.user_id == parent_id,
+                    Student.status == StudentStatus.ACTIVE,
+                    Student.is_deleted.is_(False),
+                )
+                .limit(1)
+            )
+            if active_child is not None:
+                continue
+        if username := await _set_login(db, parent_id, active):
+            changed["parents"].append(username)
+    return changed
+
+
 async def set_status(
     db: AsyncSession, actor: User, student_id: uuid.UUID, body: StatusUpdate, *, ip: str | None = None
 ) -> Student:
@@ -473,15 +530,12 @@ async def set_status(
     old = student.status
     student.status = body.status
     student.status_reason = body.reason if body.status == StudentStatus.EXPELLED else (body.reason or None)
-    log_action(
-        actor,
-        "status",
-        "student",
-        student.id,
-        {"status": {"old": old.value, "new": body.status.value}, "reason": body.reason},
-        db=db,
-        ip=ip,
-    )
+    diff: dict = {"status": {"old": old.value, "new": body.status.value}, "reason": body.reason}
+    was_active, is_active = old == StudentStatus.ACTIVE, body.status == StudentStatus.ACTIVE
+    if was_active != is_active:
+        await db.flush()  # the parent check below counts siblings' statuses in SQL
+        diff["logins"] = await _sync_logins(db, student, active=is_active)
+    log_action(actor, "status", "student", student.id, diff, db=db, ip=ip)
     await db.commit()
     return student
 
@@ -528,16 +582,17 @@ async def soft_delete(db: AsyncSession, actor: User, student_id: uuid.UUID, *, i
     """is_deleted=true; status is left as it was; the student's own login (if any) is deactivated."""
     student = await get_student_in_scope(db, actor, student_id)
     student.is_deleted = True
-    if student.user_id:
-        user = await db.get(User, student.user_id)
-        if user:
-            user.is_active = False
-    log_action(actor, "delete", "student", student.id, {"roll_no": student.roll_no, "soft": True}, db=db, ip=ip)
+    await db.flush()
+    logins = await _sync_logins(db, student, active=False)
+    diff = {"roll_no": student.roll_no, "soft": True, "logins": logins}
+    log_action(actor, "delete", "student", student.id, diff, db=db, ip=ip)
     await db.commit()
 
 
 async def get_ledger(db: AsyncSession, user: User, student_id: uuid.UUID) -> LedgerOut:
     student = await get_student_in_scope(db, user, student_id)
+    if await apply_due_fines(db, await school_today(db), student.id):
+        await db.commit()
     rows = (
         await db.scalars(select(FeeLedger).where(FeeLedger.student_id == student.id).order_by(FeeLedger.month))
     ).all()

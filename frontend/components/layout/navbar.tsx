@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronDown, KeyRound, LogOut, Menu } from "lucide-react";
+import { ChevronDown, KeyRound, LogOut, Menu } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { NotificationBell } from "@/components/notifications/bell";
 import { ROLE_CONFIG } from "@/lib/role-config";
 import type { User } from "@/lib/types";
 import { initials } from "@/lib/utils";
@@ -31,26 +32,13 @@ export function Navbar({ user, title, onOpenMenu, onSignOut }: NavbarProps) {
       </Button>
       <h2 className="min-w-0 flex-1 truncate text-lg font-semibold">{title}</h2>
 
-      {/* Phase 6 wires this to /notifications; until then it is an honest empty state. */}
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" aria-label="Notifications">
-            <Bell className="h-5 w-5" />
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-72">
-          <DropdownMenuLabel>
-            <p className="text-sm font-semibold">Notifications</p>
-            <p className="mt-1 text-sm text-muted-foreground">You're all caught up.</p>
-          </DropdownMenuLabel>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <NotificationBell role={user.role} />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
             type="button"
-            className="flex items-center gap-2.5 rounded-md py-1 pl-1 pr-2 hover:bg-muted"
+            className="flex min-h-10 items-center gap-2.5 rounded-md py-1 pl-1 pr-2 hover:bg-muted"
             aria-label="Account menu"
           >
             <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-sm font-bold text-primary-foreground">

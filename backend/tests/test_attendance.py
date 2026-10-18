@@ -20,6 +20,7 @@ from tests.helpers import create_student, create_teacher, make_school
 def _old_admission():
     return (date.today() - timedelta(days=120)).isoformat()
 
+
 API = "/api/v1"
 
 
@@ -73,7 +74,9 @@ async def test_bulk_save_upserts_never_duplicates(client, auth):
     _, admin_h = await auth(Role.ADMIN)
     day = school_day().isoformat()
     body = {
-        "class_id": str(school.klass.id), "section_id": str(school.sec_a.id), "date": day,
+        "class_id": str(school.klass.id),
+        "section_id": str(school.sec_a.id),
+        "date": day,
         "records": [{"student_id": str(s1.student.id), "status": "present"}],
     }
     r1 = await client.post(f"{API}/attendance/bulk", json=body, headers=admin_h)
@@ -96,7 +99,9 @@ async def test_rejects_future_date_holiday_and_weekly_off(client, auth):
 
     future = (date.today() + timedelta(days=3)).isoformat()
     body = {
-        "class_id": str(school.klass.id), "section_id": str(school.sec_a.id), "date": future,
+        "class_id": str(school.klass.id),
+        "section_id": str(school.sec_a.id),
+        "date": future,
         "records": [{"student_id": str(s1.student.id), "status": "present"}],
     }
     resp = await client.post(f"{API}/attendance/bulk", json=body, headers=admin_h)
@@ -125,7 +130,9 @@ async def test_teacher_backdate_limit_admin_unlimited(client, auth):
     s1 = await create_student(school, admission_date=_old_admission())
     reg, username = await create_teacher(
         school,
-        assignments=[{"class_id": str(school.klass.id), "section_id": str(school.sec_a.id), "subject_id": str(school.math.id)}],
+        assignments=[
+            {"class_id": str(school.klass.id), "section_id": str(school.sec_a.id), "subject_id": str(school.math.id)}
+        ],
     )
     teacher_h = await auth_as_existing(client, username)
     _, admin_h = await auth(Role.ADMIN)
@@ -137,7 +144,9 @@ async def test_teacher_backdate_limit_admin_unlimited(client, auth):
 
     too_old = school_day(days_back=limit + 5)
     body = {
-        "class_id": str(school.klass.id), "section_id": str(school.sec_a.id), "date": too_old.isoformat(),
+        "class_id": str(school.klass.id),
+        "section_id": str(school.sec_a.id),
+        "date": too_old.isoformat(),
         "records": [{"student_id": str(s1.student.id), "status": "present"}],
     }
     resp = await client.post(f"{API}/attendance/bulk", json=body, headers=teacher_h)
@@ -162,7 +171,9 @@ async def test_percentage_matches_documented_example(client, auth):
         while d.isoweekday() == 7:
             d -= timedelta(days=1)
         body = {
-            "class_id": str(school.klass.id), "section_id": str(school.sec_a.id), "date": d.isoformat(),
+            "class_id": str(school.klass.id),
+            "section_id": str(school.sec_a.id),
+            "date": d.isoformat(),
             "records": [{"student_id": str(s1.student.id), "status": status}],
         }
         resp = await client.post(f"{API}/attendance/bulk", json=body, headers=admin_h)
@@ -172,7 +183,9 @@ async def test_percentage_matches_documented_example(client, auth):
 
     totals = {"present": 0, "absent": 0, "late": 0, "sick": 0}
     for month in months_touched:
-        resp = await client.get(f"{API}/students/{s1.student.id}/attendance/summary", params={"month": month}, headers=admin_h)
+        resp = await client.get(
+            f"{API}/students/{s1.student.id}/attendance/summary", params={"month": month}, headers=admin_h
+        )
         assert resp.status_code == 200
         summary = resp.json()
         for k in totals:
@@ -187,15 +200,31 @@ async def test_teacher_cannot_mark_unassigned_section(client, auth):
     s1 = await create_student(school, admission_date=_old_admission())
     reg, username = await create_teacher(
         school,
-        assignments=[{"class_id": str(school.klass.id), "section_id": str(school.sec_b.id), "subject_id": str(school.math.id)}],
+        assignments=[
+            {"class_id": str(school.klass.id), "section_id": str(school.sec_b.id), "subject_id": str(school.math.id)}
+        ],
     )
     teacher_h = await auth_as_existing(client, username)
     body = {
-        "class_id": str(school.klass.id), "section_id": str(school.sec_a.id), "date": school_day().isoformat(),
+        "class_id": str(school.klass.id),
+        "section_id": str(school.sec_a.id),
+        "date": school_day().isoformat(),
         "records": [{"student_id": str(s1.student.id), "status": "present"}],
     }
     resp = await client.post(f"{API}/attendance/bulk", json=body, headers=teacher_h)
-    assert resp.status_code == 403
+    assert resp.status_code == 404  # out of scope is 404, never 403
+    params = {"class_id": str(school.klass.id), "section_id": str(school.sec_a.id)}
+    assert (await client.get(f"{API}/attendance", params=params, headers=teacher_h)).status_code == 404
+    day = school_day().isoformat()
+    report = await client.get(
+        f"{API}/reports/attendance/class", params={**params, "from": day, "to": day}, headers=teacher_h
+    )
+    assert report.status_code == 404
+    params["section_id"] = str(school.sec_b.id)
+    report = await client.get(
+        f"{API}/reports/attendance/class", params={**params, "from": day, "to": day}, headers=teacher_h
+    )
+    assert report.status_code == 200
 
 
 async def test_parent_cannot_read_another_childs_calendar(client, auth):
@@ -207,7 +236,9 @@ async def test_parent_cannot_read_another_childs_calendar(client, auth):
     h_b = await parent_headers(client, username_b)
 
     month = date.today().strftime("%Y-%m")
-    resp = await client.get(f"{API}/students/{kids_a[0].student.id}/attendance/calendar", params={"month": month}, headers=h_b)
+    resp = await client.get(
+        f"{API}/students/{kids_a[0].student.id}/attendance/calendar", params={"month": month}, headers=h_b
+    )
     assert resp.status_code == 404
 
 
@@ -227,7 +258,12 @@ async def test_absent_creates_exactly_one_notification_per_student_per_day(clien
         await db.commit()
 
     day = school_day().isoformat()
-    body = {"class_id": class_id, "section_id": section_id, "date": day, "records": [{"student_id": str(sid), "status": "absent"}]}
+    body = {
+        "class_id": class_id,
+        "section_id": section_id,
+        "date": day,
+        "records": [{"student_id": str(sid), "status": "absent"}],
+    }
     for _ in range(3):  # re-save the same day 3 times
         resp = await client.post(f"{API}/attendance/bulk", json=body, headers=admin_h)
         assert resp.status_code == 200, resp.text
@@ -236,7 +272,9 @@ async def test_absent_creates_exactly_one_notification_per_student_per_day(clien
         from app.models import Guardian, StudentGuardian
 
         guardian_user_id = await db.scalar(
-            select(Guardian.user_id).join(StudentGuardian, StudentGuardian.guardian_id == Guardian.id).where(StudentGuardian.student_id == sid)
+            select(Guardian.user_id)
+            .join(StudentGuardian, StudentGuardian.guardian_id == Guardian.id)
+            .where(StudentGuardian.student_id == sid)
         )
         notifications = (await db.scalars(select(Notification).where(Notification.user_id == guardian_user_id))).all()
     assert len(notifications) == 1

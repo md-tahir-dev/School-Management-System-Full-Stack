@@ -35,14 +35,14 @@ def _image_data_uri(path_or_url: str | None, upload_dir: str) -> str | None:
     if not path_or_url:
         return None
     try:
-        filename = path_or_url.rsplit("/", 1)[-1]
-        local_path = Path(upload_dir) / filename
+        folder, filename = path_or_url.rsplit("/", 2)[-2:]  # ".../uploads/logos/<name>"
+        local_path = Path(upload_dir) / folder / filename
         if not local_path.is_file():
             return None
         ext = local_path.suffix.lstrip(".").lower() or "png"
         data = base64.b64encode(local_path.read_bytes()).decode("ascii")
         return f"data:image/{ext};base64,{data}"
-    except OSError:
+    except (OSError, ValueError):
         return None
 
 
@@ -112,3 +112,71 @@ def merge_pdfs(pdf_bytes_list: list[bytes]) -> bytes:
 
 def new_share_token() -> str:
     return uuid.uuid4().hex
+
+
+def _slip_pdf(
+    *, school, upload_dir: str, title: str, facts, columns, lines, total_label: str, total, void_note=None
+) -> bytes:
+    html = _env.get_template("slip.html.jinja").render(
+        font_regular=_font_uri("NotoSans-Regular.ttf"),
+        font_bold=_font_uri("NotoSans-Bold.ttf"),
+        font_urdu=_font_uri("NotoNastaliqUrdu-Regular.ttf"),
+        school_name=school.name,
+        address=school.address,
+        phone=school.phone,
+        logo_src=_image_data_uri(school.logo_url, upload_dir),
+        title=title,
+        facts=facts,
+        columns=columns,
+        lines=lines,
+        total_label=total_label,
+        total=total,
+        void_note=void_note,
+        issued=date.today().isoformat(),
+    )
+    return html_to_pdf(html)
+
+
+def render_receipt_pdf(payment, *, school, upload_dir: str) -> bytes:
+    """Fee receipt: one line per month the payment was allocated to."""
+    return _slip_pdf(
+        school=school,
+        upload_dir=upload_dir,
+        title=f"Fee receipt {payment.receipt_no}",
+        facts=[
+            ("Student", payment.student_name),
+            ("Roll no.", payment.roll_no),
+            ("Class", payment.class_name),
+            ("Paid on", payment.paid_at.date().isoformat()),
+            ("Method", payment.method.value.title()),
+            ("Received by", payment.received_by_name),
+        ],
+        columns=("Month", "Amount"),
+        lines=[(a.month.strftime("%B %Y"), f"{a.amount:,.2f}") for a in payment.allocations],
+        total_label="Total paid",
+        total=f"{payment.amount:,.2f}",
+        void_note=f"Voided: {payment.void_reason}" if payment.voided_at else None,
+    )
+
+
+def render_payslip_pdf(record, *, school, upload_dir: str) -> bytes:
+    """Monthly payslip: gross, deductions, net."""
+    return _slip_pdf(
+        school=school,
+        upload_dir=upload_dir,
+        title=f"Payslip {record.month.strftime('%B %Y')}",
+        facts=[
+            ("Teacher", record.teacher_name),
+            ("Employee ID", record.employee_id),
+            ("Status", record.status.value.title()),
+            ("Paid on", record.paid_date and record.paid_date.isoformat()),
+        ],
+        columns=("Item", "Amount"),
+        lines=[
+            ("Gross salary", f"{record.gross:,.2f}"),
+            (f"Absence deduction ({record.absent_days} day(s))", f"-{record.absence_deduction:,.2f}"),
+            ("Advance deduction", f"-{record.advance_deduction:,.2f}"),
+        ],
+        total_label="Net pay",
+        total=f"{record.net:,.2f}",
+    )

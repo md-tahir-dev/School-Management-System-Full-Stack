@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  @font-face { font-family: "Noto"; src: url("{{ font_regular }}"); }
+  @font-face { font-family: "Noto"; font-weight: bold; src: url("{{ font_bold }}"); }
+  @font-face { font-family: "Urdu"; src: url("{{ font_urdu }}"); }
+  @page { size: A5 landscape; margin: 12mm; }
+  body { font-family: "Noto", "Urdu", sans-serif; font-size: 10pt; color: #111827; }
+  header { display: flex; align-items: center; gap: 10px; border-bottom: 2px solid #1e3a8a; padding-bottom: 6px; }
+  header img { width: 42px; height: 42px; object-fit: contain; }
+  h1 { font-size: 14pt; margin: 0; }
+  .muted { color: #6b7280; font-size: 8.5pt; }
+  h2 { font-size: 12pt; margin: 10px 0 6px; display: flex; justify-content: space-between; }
+  .void { color: #b91c1c; border: 2px solid #b91c1c; padding: 1px 8px; font-size: 10pt; }
+  dl { display: grid; grid-template-columns: max-content 1fr max-content 1fr; gap: 3px 12px; margin: 0 0 8px; }
+  dt { color: #6b7280; }
+  dd { margin: 0; font-weight: bold; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border-bottom: 1px solid #e5e7eb; padding: 4px 6px; text-align: left; }
+  td.num, th.num { text-align: right; }
+  tfoot td { font-weight: bold; border-top: 2px solid #111827; border-bottom: none; }
+  footer { margin-top: 14px; display: flex; justify-content: space-between; font-size: 8.5pt; color: #6b7280; }
+</style>
+</head>
+<body>
+  <header>
+    {% if logo_src %}<img src="{{ logo_src }}" alt="">{% endif %}
+    <div>
+      <h1>{{ school_name }}</h1>
+      <div class="muted">{{ [address, phone] | select | join(" · ") }}</div>
+    </div>
+  </header>
+  <h2><span>{{ title }}</span>{% if void_note %}<span class="void">VOID</span>{% endif %}</h2>
+  <dl>
+    {% for label, value in facts %}<dt>{{ label }}</dt><dd>{{ value or "-" }}</dd>{% endfor %}
+  </dl>
+  <table>
+    <thead><tr><th>{{ columns[0] }}</th><th class="num">{{ columns[1] }}</th></tr></thead>
+    <tbody>
+      {% for label, amount in lines %}<tr><td>{{ label }}</td><td class="num">{{ amount }}</td></tr>{% endfor %}
+    </tbody>
+    <tfoot><tr><td>{{ total_label }}</td><td class="num">{{ total }}</td></tr></tfoot>
+  </table>
+  {% if void_note %}<p class="void">{{ void_note }}</p>{% endif %}
+  <footer><span>Computer-generated; no signature required.</span><span>Issued {{ issued }}</span></footer>
+</body>
+</html>

@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 
-const ROLES = ["ceo", "admin", "teacher", "student", "parent"];
+const ROLES = ["ceo", "admin", "headmaster", "teacher", "student", "parent"];
 
 /**
  * Route gating by role, using the `sms_role` cookie the API sets at sign-in.

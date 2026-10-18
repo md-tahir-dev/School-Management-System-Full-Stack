@@ -84,13 +84,14 @@ export function DashboardShell({ role, children }: { role: Role; children: React
       <Sidebar
         role={role}
         schoolName={config?.school_name ?? "School"}
+        logoUrl={config?.logo_url}
         open={menuOpen}
         onClose={() => setMenuOpen(false)}
         onSignOut={signOut}
       />
-      <div className="lg:pl-64">
+      <div className="min-w-0 lg:pl-64">
         <Navbar user={user} title={title} onOpenMenu={() => setMenuOpen(true)} onSignOut={signOut} />
-        <main id="main" className="mx-auto max-w-7xl p-4 sm:p-6">
+        <main id="main" className="mx-auto min-w-0 max-w-7xl p-3 sm:p-6">
           {children}
         </main>
       </div>

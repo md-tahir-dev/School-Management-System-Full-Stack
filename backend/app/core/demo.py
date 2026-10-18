@@ -6,6 +6,7 @@ from app.models.enums import Role
 DEMO_USERS: tuple[tuple[Role, str, str], ...] = (
     (Role.CEO, "ceo", "Demo CEO"),
     (Role.ADMIN, "admin", "Demo Admin"),
+    (Role.HEADMASTER, "headmaster", "Demo Headmaster"),
     (Role.TEACHER, "teacher", "Demo Teacher"),
     (Role.STUDENT, "student", "Demo Student"),
     (Role.PARENT, "parent", "Demo Parent"),

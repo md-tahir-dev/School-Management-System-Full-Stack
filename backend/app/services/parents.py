@@ -10,6 +10,8 @@ from app.models import FeeLedger, SchoolClass, Section, Student, User
 from app.schemas.common import Page, PageParams
 from app.schemas.parent import ChildDashboard, ChildSummary, FeeMonthSummary
 from app.services.dashboard import attendance_card, latest_result_card
+from app.services.notices import latest_announcements
+from app.services.online_tests import upcoming_tests
 from app.services.scoping import get_student_in_scope, student_scope_clause
 from app.utils.pagination import paginate
 
@@ -69,4 +71,6 @@ async def child_dashboard(
         latest_result=result_card,
         attendance_percentage=att_card["month_percentage"] if att_card else None,
         attendance=att_card,
+        upcoming_tests=await upcoming_tests(db, student),
+        announcements=await latest_announcements(db, user),
     )

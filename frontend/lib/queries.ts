@@ -4,7 +4,7 @@ import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { api } from "./api";
 import { useAuth } from "./auth";
-import type { AcademicYear, ChildSummary, ClassOut, Page, SchoolSettings, SectionOut, TeacherDetail } from "./types";
+import type { AcademicYear, ChildSummary, ClassOut, MetaOptions, Page, SchoolSettings, SectionOut, SubjectOut, TeacherDetail } from "./types";
 
 export function useSettings() {
   return useQuery({ queryKey: ["settings"], queryFn: () => api<SchoolSettings>("/settings"), staleTime: 5 * 60_000 });
@@ -27,6 +27,20 @@ export function useSections(classId: string | undefined) {
     enabled: !!classId,
     staleTime: 5 * 60_000,
   });
+}
+
+export function useSubjects() {
+  return useQuery({
+    queryKey: ["subjects"],
+    queryFn: () => api<Page<SubjectOut>>("/subjects", { query: { page_size: 100 } }),
+    select: (p) => p.items,
+    staleTime: 5 * 60_000,
+  });
+}
+
+/** Allowed values for the student and teacher form dropdowns. */
+export function useMetaOptions() {
+  return useQuery({ queryKey: ["meta-options"], queryFn: () => api<MetaOptions>("/meta/options"), staleTime: Infinity });
 }
 
 export function useAcademicYears(enabled = true) {

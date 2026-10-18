@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, File, Query, Request, Response, UploadFi
 from pydantic import AfterValidator, BaseModel
 
 from app.core.deps import CurrentUser, DbSession, require_roles
+from app.core.permissions import SCHOOL_WIDE
 from app.core.ratelimit import client_ip
 from app.models import Role, User
 from app.models.enums import StudentStatus
@@ -144,7 +145,7 @@ async def change_discount(student_id: uuid.UUID, body: DiscountUpdate, request: 
 async def student_ledger(
     student_id: uuid.UUID,
     db: DbSession,
-    user: Annotated[User, Depends(require_roles(Role.ADMIN, Role.CEO, Role.STUDENT, Role.PARENT))],
+    user: Annotated[User, Depends(require_roles(*SCHOOL_WIDE, Role.STUDENT, Role.PARENT))],
 ):
     return await svc.get_ledger(db, user, student_id)
 

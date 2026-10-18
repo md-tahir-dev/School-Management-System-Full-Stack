@@ -8,7 +8,6 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, invalid, not_found
-from app.services.dbutil import flush_or_conflict as _flush_or_conflict
 from app.models import (
     AcademicYear,
     ClassSubject,
@@ -35,6 +34,7 @@ from app.schemas.academic import (
 )
 from app.schemas.common import Page, PageParams
 from app.services.audit import log_action
+from app.services.dbutil import flush_or_conflict as _flush_or_conflict
 from app.services.settings import get_school_settings
 from app.utils.money import money
 from app.utils.pagination import like_pattern, paginate

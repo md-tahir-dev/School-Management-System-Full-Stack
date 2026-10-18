@@ -1,0 +1,23 @@
+# Production: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d --build
+# Only Caddy is public (80/443, automatic HTTPS for $DOMAIN); api and web stay on the internal network.
+services:
+  api:
+    ports: !reset []
+  web:
+    ports: !reset []
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      DOMAIN: ${DOMAIN:?set DOMAIN in .env, e.g. school.example.com}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - web
+
+volumes:
+  caddy_data:

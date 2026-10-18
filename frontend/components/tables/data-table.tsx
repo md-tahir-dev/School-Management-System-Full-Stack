@@ -90,8 +90,8 @@ export function DataTable<T>({
               />
             </div>
           )}
-          {filters ? <div className="flex flex-wrap items-center gap-2">{filters}</div> : null}
-          {actions ? <div className="flex items-center gap-2 sm:ml-auto">{actions}</div> : null}
+          {filters ? <div className="flex flex-wrap items-center gap-2 [&_select]:max-w-full">{filters}</div> : null}
+          {actions ? <div className="flex flex-wrap items-center gap-2 sm:ml-auto">{actions}</div> : null}
         </div>
       )}
 
@@ -157,7 +157,7 @@ export function DataTable<T>({
         <p className="text-muted-foreground" aria-live="polite">
           {total === 0 ? "No results" : `Showing ${from}-${to} of ${total}`}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center justify-center gap-2">
           <Button variant="outline" size="sm" onClick={() => onPageChange(page - 1)} disabled={page <= 1}>
             <ChevronLeft className="h-4 w-4" aria-hidden />
             Previous

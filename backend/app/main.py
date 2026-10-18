@@ -57,13 +57,16 @@ def create_app() -> FastAPI:
         return response
 
     register_exception_handlers(app)
-    app.include_router(api_router, prefix="/api/v1")
 
-    # Uploaded photos and logos (random UUID filenames). Served under /api/v1/uploads so the web app's
-    # existing /api/v1 proxy covers them. Swap for a bucket URL when storage moves to S3.
+    # Only photos and logos are public (login page shows the logo); random UUID filenames. Mounted per
+    # folder and BEFORE the API routes: every other folder under the prefix (diary, homework, materials)
+    # falls through to the authenticated, row-scoped GET in api/v1/content.py. Swap for signed bucket
+    # URLs when storage moves to S3.
     upload_root = Path(settings.upload_dir)
-    upload_root.mkdir(parents=True, exist_ok=True)
-    app.mount(settings.upload_url_prefix, StaticFiles(directory=upload_root), name="uploads")
+    for folder in ("photos", "logos"):
+        (upload_root / folder).mkdir(parents=True, exist_ok=True)
+        app.mount(f"{settings.upload_url_prefix}/{folder}", StaticFiles(directory=upload_root / folder), name=folder)
+    app.include_router(api_router, prefix="/api/v1")
     return app
 
 

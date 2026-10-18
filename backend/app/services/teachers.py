@@ -11,6 +11,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.errors import AppError, forbidden, invalid, not_found
+from app.core.permissions import SCHOOL_WIDE
 from app.core.security import ahash_password, generate_temp_password
 from app.models import (
     ClassSubject,
@@ -216,7 +217,7 @@ async def current_teacher(db: AsyncSession, user: User) -> Teacher | None:
 
 async def get_teacher_in_scope(db: AsyncSession, user: User, teacher_id: uuid.UUID) -> Teacher:
     """Admin/CEO: any teacher. Teacher: only their own profile (anything else is 'not found')."""
-    if user.role in (Role.ADMIN, Role.CEO):
+    if user.role in SCHOOL_WIDE:
         teacher = await db.scalar(select(Teacher).where(Teacher.id == teacher_id, Teacher.is_deleted.is_(False)))
     elif user.role == Role.TEACHER:
         teacher = await db.scalar(

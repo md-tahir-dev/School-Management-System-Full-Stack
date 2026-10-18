@@ -190,7 +190,7 @@ export function MarkAttendance() {
             })}
           </ul>
 
-          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card/95 px-4 py-3 backdrop-blur lg:left-64">
+          <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-card/95 px-4 py-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] backdrop-blur lg:left-64">
             <div className="mx-auto flex max-w-7xl items-center justify-between gap-3">
               <p className="text-sm font-semibold tabular-nums" aria-live="polite">
                 P {counts.present} · A {counts.absent} · L {counts.late} · S {counts.sick}

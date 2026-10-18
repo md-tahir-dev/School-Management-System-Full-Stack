@@ -79,6 +79,8 @@ class SchoolSettings(IdMixin, TimestampMixin, Base):
     name: Mapped[str] = mapped_column(String(150))
     slogan: Mapped[str | None] = mapped_column(String(255))
     logo_url: Mapped[str | None] = mapped_column(String(500))
+    favicon_url: Mapped[str | None] = mapped_column(String(500))  # falls back to the logo
+    login_image_url: Mapped[str | None] = mapped_column(String(500))
     address: Mapped[str | None] = mapped_column(Text)
     phone: Mapped[str | None] = mapped_column(String(32))
     email: Mapped[str | None] = mapped_column(String(150))
